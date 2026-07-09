@@ -1,0 +1,16 @@
+[project]
+name = "priorizacion-stock-toledano"
+version = "0.1.0"
+description = "Databricks Asset Bundle para Priorizacion de Stock Toledano."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "pyyaml>=6.0.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

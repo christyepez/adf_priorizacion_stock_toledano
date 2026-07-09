@@ -1,0 +1,88 @@
+resources:
+  jobs:
+    job_modelo_creacion_indice_priorizacion:
+      name: ${bundle.target}_modelo_creacion_indice_priorizacion
+      tags:
+        proyecto: priorizacion-stock-toledano
+        pipeline_adf_origen: 0_actulizar_modelo_creacion_indice_priorizacion
+        modelo: Modelo_Priorizacion_Stock
+      job_clusters:
+        - job_cluster_key: job_cluster
+          new_cluster:
+            spark_version: 15.4.x-scala2.12
+            node_type_id: Standard_DS3_v2
+            num_workers: 2
+      parameters:
+        - name: ambiente
+          default: ${var.ambiente}
+        - name: Proceso
+          default: Modelo_Priorizacion_Stock
+        - name: SistemaFuente
+          default: all
+        - name: AñoMesDiaInicial
+          default: "0"
+        - name: AñoMesDiaFinal
+          default: "0"
+        - name: modo_control
+          default: get_control_cargas
+        - name: modo_ejecucion
+          default: normal
+        - name: emails
+          default: ""
+      tasks:
+        - task_key: modelo_creacion_indice_priorizacion
+          job_cluster_key: job_cluster
+          notebook_task:
+            notebook_path: ../../notebooks/04_modelo/nb_creacion_indice_priorizacion.py
+            base_parameters:
+              ambiente: "{{job.parameters.ambiente}}"
+              Proceso: "{{job.parameters.Proceso}}"
+              modo_ejecucion: "{{job.parameters.modo_ejecucion}}"
+              execution_id: "{{job.run_id}}"
+              fecha_filtro: ""
+              catalog_silver: ${var.catalog_silver}
+              catalog_gold: ${var.catalog_gold}
+              schema_sap: ${var.schema_sap}
+              schema_sharepoint: ${var.schema_sharepoint}
+              schema_atlas: ${var.schema_atlas}
+
+        - task_key: publicar_resultados_sql
+          depends_on:
+            - task_key: modelo_creacion_indice_priorizacion
+          job_cluster_key: job_cluster
+          notebook_task:
+            notebook_path: ../../notebooks/05_publicacion/nb_publicar_resultados_sql.py
+            base_parameters:
+              ambiente: "{{job.parameters.ambiente}}"
+              Proceso: "{{job.parameters.Proceso}}"
+              catalog_gold: ${var.catalog_gold}
+              schema_atlas: ${var.schema_atlas}
+              secret_scope: ${var.secret_scope}
+              sql_publication_server_secret: ${var.sql_publication_server_secret}
+              sql_publication_database_secret: ${var.sql_publication_database_secret}
+              sql_publication_username_secret: ${var.sql_publication_username_secret}
+              sql_publication_password_secret: ${var.sql_publication_password_secret}
+              modo_publicacion: truncate_insert
+              target_schema: dbo
+              target_table: Int_Prioriza_Clientes
+
+        - task_key: notify_success
+          depends_on:
+            - task_key: publicar_resultados_sql
+          job_cluster_key: job_cluster
+          notebook_task:
+            notebook_path: ../../notebooks/07_audit/nb_notify.py
+            base_parameters:
+              ambiente: "{{job.parameters.ambiente}}"
+              Proceso: "{{job.parameters.Proceso}}"
+              run_id: "{{job.run_id}}"
+              execution_id: "{{job.run_id}}"
+              status: SUCCEEDED
+              emails: "{{job.parameters.emails}}"
+              message: "Fin exitoso del proceso Modelo_Priorizacion_Stock"
+              subject: "Priorizacion Stock Toledano - SUCCEEDED"
+              name: "Priorizacion Stock Toledano"
+              secret_scope: ${var.secret_scope}
+              notification_endpoint_secret: ${var.notification_endpoint_secret}
+              catalog_gold: ${var.catalog_gold}
+              schema_atlas: ${var.schema_atlas}

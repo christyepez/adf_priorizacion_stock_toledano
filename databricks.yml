@@ -1,0 +1,172 @@
+bundle:
+  name: priorizacion-stock-toledano
+
+include:
+  - resources/jobs/*.yml
+
+variables:
+  ambiente:
+    description: Ambiente logico de ejecucion.
+    default: dev
+  catalog_bronze:
+    description: Catalogo bronze de Unity Catalog.
+  catalog_silver:
+    description: Catalogo silver de Unity Catalog.
+  catalog_gold:
+    description: Catalogo gold de Unity Catalog.
+  schema_sap:
+    description: Schema para objetos SAP.
+    default: sap
+  schema_sharepoint:
+    description: Schema para objetos SharePoint.
+    default: sharepoint
+  schema_atlas:
+    description: Schema para objetos finales Atlas.
+    default: atlas
+  secret_scope:
+    description: Secret scope respaldado por Key Vault o Databricks Secrets.
+  storage_account:
+    description: Nombre de storage account ADLS sin URL ni SAS.
+  sql_control_server_secret:
+    description: Nombre del secreto del servidor SQL de control.
+  sql_control_database_secret:
+    description: Nombre del secreto de la base SQL de control.
+  sql_control_username_secret:
+    description: Nombre del secreto del usuario SQL de control.
+  sql_control_password_secret:
+    description: Nombre del secreto del password SQL de control.
+  sql_publication_server_secret:
+    description: Nombre del secreto del servidor SQL de publicacion.
+  sql_publication_database_secret:
+    description: Nombre del secreto de la base SQL de publicacion.
+  sql_publication_username_secret:
+    description: Nombre del secreto del usuario SQL de publicacion.
+  sql_publication_password_secret:
+    description: Nombre del secreto del password SQL de publicacion.
+  notification_endpoint_secret:
+    description: Nombre del secreto del endpoint de notificacion.
+  sap_hana_server_secret:
+    description: Nombre del secreto del host SAP HANA.
+    default: sap-hana-server
+  sap_hana_port_secret:
+    description: Nombre del secreto del puerto SAP HANA.
+    default: sap-hana-port
+  sap_hana_username_secret:
+    description: Nombre del secreto del usuario SAP HANA.
+    default: sap-hana-username
+  sap_hana_password_secret:
+    description: Nombre del secreto del password SAP HANA.
+    default: sap-hana-password
+  sharepoint_base_url_secret:
+    description: Nombre del secreto de la URL base segura de Graph o SharePoint.
+    default: sharepoint-base-url
+  sharepoint_token_secret:
+    description: Nombre opcional del secreto de token reutilizable SharePoint.
+    default: ""
+  sharepoint_client_id_secret:
+    description: Nombre del secreto del client id para OAuth SharePoint.
+    default: sharepoint-client-id
+  sharepoint_client_secret_secret:
+    description: Nombre del secreto del client secret para OAuth SharePoint.
+    default: sharepoint-client-secret
+  sharepoint_tenant_id_secret:
+    description: Nombre del secreto del tenant id para OAuth SharePoint.
+    default: sharepoint-tenant-id
+  modo_control:
+    description: Modo de control permitido: get_control_cargas o lakebase.
+    default: get_control_cargas
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      root_path: /Shared/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      ambiente: dev
+      catalog_bronze: toledano_bronze_dev
+      catalog_silver: toledano_silver_dev
+      catalog_gold: toledano_gold_dev
+      secret_scope: kv-toledano-dev
+      storage_account: dlsbigdatatoledanodev
+      sql_control_server_secret: sql-control-server
+      sql_control_database_secret: sql-control-database
+      sql_control_username_secret: sql-control-username
+      sql_control_password_secret: sql-control-password
+      sql_publication_server_secret: sql-publication-server
+      sql_publication_database_secret: sql-publication-database
+      sql_publication_username_secret: sql-publication-username
+      sql_publication_password_secret: sql-publication-password
+      notification_endpoint_secret: notification-endpoint
+      sap_hana_server_secret: sap-hana-server
+      sap_hana_port_secret: sap-hana-port
+      sap_hana_username_secret: sap-hana-username
+      sap_hana_password_secret: sap-hana-password
+      sharepoint_base_url_secret: sharepoint-base-url
+      sharepoint_token_secret: ""
+      sharepoint_client_id_secret: sharepoint-client-id
+      sharepoint_client_secret_secret: sharepoint-client-secret
+      sharepoint_tenant_id_secret: sharepoint-tenant-id
+      modo_control: get_control_cargas
+
+  test:
+    mode: development
+    workspace:
+      root_path: /Shared/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      ambiente: test
+      catalog_bronze: toledano_bronze_test
+      catalog_silver: toledano_silver_test
+      catalog_gold: toledano_gold_test
+      secret_scope: kv-toledano-test
+      storage_account: dlsbigdatatoledanotest
+      sql_control_server_secret: sql-control-server
+      sql_control_database_secret: sql-control-database
+      sql_control_username_secret: sql-control-username
+      sql_control_password_secret: sql-control-password
+      sql_publication_server_secret: sql-publication-server
+      sql_publication_database_secret: sql-publication-database
+      sql_publication_username_secret: sql-publication-username
+      sql_publication_password_secret: sql-publication-password
+      notification_endpoint_secret: notification-endpoint
+      sap_hana_server_secret: sap-hana-server
+      sap_hana_port_secret: sap-hana-port
+      sap_hana_username_secret: sap-hana-username
+      sap_hana_password_secret: sap-hana-password
+      sharepoint_base_url_secret: sharepoint-base-url
+      sharepoint_token_secret: ""
+      sharepoint_client_id_secret: sharepoint-client-id
+      sharepoint_client_secret_secret: sharepoint-client-secret
+      sharepoint_tenant_id_secret: sharepoint-tenant-id
+      modo_control: get_control_cargas
+
+  prod:
+    mode: production
+    workspace:
+      root_path: /Shared/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      ambiente: prod
+      catalog_bronze: toledano_bronze_prod
+      catalog_silver: toledano_silver_prod
+      catalog_gold: toledano_gold_prod
+      secret_scope: kv-toledano-prod
+      storage_account: dlsbigdatatoledanoprod
+      sql_control_server_secret: sql-control-server
+      sql_control_database_secret: sql-control-database
+      sql_control_username_secret: sql-control-username
+      sql_control_password_secret: sql-control-password
+      sql_publication_server_secret: sql-publication-server
+      sql_publication_database_secret: sql-publication-database
+      sql_publication_username_secret: sql-publication-username
+      sql_publication_password_secret: sql-publication-password
+      notification_endpoint_secret: notification-endpoint
+      sap_hana_server_secret: sap-hana-server
+      sap_hana_port_secret: sap-hana-port
+      sap_hana_username_secret: sap-hana-username
+      sap_hana_password_secret: sap-hana-password
+      sharepoint_base_url_secret: sharepoint-base-url
+      sharepoint_token_secret: ""
+      sharepoint_client_id_secret: sharepoint-client-id
+      sharepoint_client_secret_secret: sharepoint-client-secret
+      sharepoint_tenant_id_secret: sharepoint-tenant-id
+      modo_control: get_control_cargas
