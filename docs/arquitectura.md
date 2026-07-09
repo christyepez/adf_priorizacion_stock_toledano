@@ -64,7 +64,81 @@ flowchart LR
 | Calidad | `src/priorizacion_stock_toledano/quality` | Validaciones minimas y reconciliacion |
 | Auditoria | `src/priorizacion_stock_toledano/audit` | Eventos Delta y notificaciones |
 
-## 6. Seguridad
+## 6. Descripcion por componente del repositorio
+
+### 6.1 `resources/jobs`
+
+Contiene la definicion declarativa de los Databricks Jobs administrados por el bundle. Cada YAML representa un flujo ejecutable y parametrizable por ambiente. El job principal, `job_full_priorizacion_stock`, reemplaza la orquestacion ADF end to end y ejecuta las tareas en el orden operativo definido.
+
+Jobs incluidos:
+
+- `job_full_priorizacion_stock.yml`
+- `job_ext_saphana_priorizacion_stock.yml`
+- `job_ext_sharepoint_priorizacion_stock.yml`
+- `job_bronze_to_silver_sap_priorizacion_stock.yml`
+- `job_bronze_to_silver_sharepoint_priorizacion_stock.yml`
+- `job_modelo_creacion_indice_priorizacion.yml`
+
+### 6.2 `notebooks`
+
+Los notebooks son puntos de entrada operativos para Databricks Jobs. Cada notebook debe mantenerse como orquestador de una etapa y delegar la logica reutilizable al paquete Python en `src`.
+
+Organizacion por etapa:
+
+- `00_setup`: validaciones iniciales de configuracion.
+- `01_control`: lectura de control de cargas desde SQL Server o Lakebase.
+- `02_extraccion`: extracciones SAP HANA y SharePoint.
+- `03_bronze_to_silver`: transformaciones refactorizadas desde notebooks originales.
+- `04_modelo`: parametrizacion y ejecucion del modelo de indice.
+- `05_publicacion`: publicacion del resultado Gold hacia SQL Server.
+- `06_quality`: reglas de calidad y reconciliacion ADF vs Databricks.
+- `07_audit`: auditoria y notificaciones.
+
+### 6.3 `src/priorizacion_stock_toledano`
+
+Contiene el codigo Python versionado, reusable y testeable. Esta capa evita que los notebooks acumulen logica compleja y permite validar transformaciones con pruebas unitarias.
+
+Submodulos principales:
+
+| Modulo | Responsabilidad |
+|---|---|
+| `control` | Normalizacion de `GetControlCargas`, lectura JDBC SQL Server y opcion Lakebase PostgreSQL |
+| `extraction` | Construccion de queries SAP HANA, extraccion JDBC, mapeo SharePoint y metricas |
+| `transformations` | Limpieza de tildes, nulos, casts y escrituras Silver |
+| `model` | Resolucion de tablas por ambiente y calculo del indice de priorizacion |
+| `publication` | Publicacion JDBC a SQL Server con modos `append`, `overwrite` y `truncate_insert` |
+| `quality` | Reglas de existencia, nulos, duplicados y reconciliacion de conteos |
+| `audit` | Registro de eventos Delta y payloads de notificacion |
+
+### 6.4 `sql`
+
+Agrupa scripts SQL de soporte. Actualmente contiene la carpeta `sql/lakebase/`, que modela una futura fuente de control en Lakebase PostgreSQL para reemplazar gradualmente el procedimiento `conf.GetControlCargas`.
+
+Scripts Lakebase:
+
+- `001_create_control_tables.sql`
+- `002_insert_priorizacion_stock_sample_data.sql`
+- `003_create_control_views.sql`
+
+### 6.5 `tests`
+
+Contiene pruebas unitarias enfocadas en contratos y reglas criticas. Las pruebas usan mocks cuando no es viable ejecutar Spark, SAP HANA, SharePoint o SQL Server localmente.
+
+Coberturas relevantes:
+
+- Construccion de queries y URLs JDBC sin credenciales.
+- Normalizacion del contrato de control de cargas.
+- Transformaciones Bronze to Silver.
+- Parametrizacion del modelo.
+- Funciones principales del indice.
+- Publicacion SQL y sanitizacion de errores.
+- Auditoria, notificacion, calidad y reconciliacion.
+
+### 6.6 `docs`
+
+Contiene la documentacion tecnica lista para revision, operacion y transferencia. Incluye arquitectura, estrategia de implementacion, mapa ADF, matriz ADF a Databricks, runbook operativo, pruebas y evolucion Lakebase.
+
+## 7. Seguridad
 
 La arquitectura prohibe credenciales, tokens, passwords y URLs firmadas en codigo o YAML. Todos los valores sensibles se resuelven mediante:
 
@@ -80,7 +154,7 @@ Los parametros sensibles relevantes son:
 - `sharepoint_*_secret`
 - `notification_endpoint_secret`
 
-## 7. Ambientes
+## 8. Ambientes
 
 El bundle soporta:
 
@@ -90,7 +164,7 @@ El bundle soporta:
 | `test` | Validacion funcional y paralelos ADF | `toledano_bronze_test`, `toledano_silver_test`, `toledano_gold_test` |
 | `prod` | Ejecucion productiva | `toledano_bronze_prod`, `toledano_silver_prod`, `toledano_gold_prod` |
 
-## 8. Principios de diseno
+## 9. Principios de diseno
 
 - Mantener compatibilidad con el contrato ADF mientras se migra gradualmente.
 - Separar notebooks orquestadores de logica reusable en Python.
