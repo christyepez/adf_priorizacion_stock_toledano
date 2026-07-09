@@ -3,23 +3,9 @@
 # MAGIC %md
 # MAGIC # Modelo De Priorizacion - Creacion Indice Priorizacion
 # MAGIC
-# MAGIC Orquesta la parametrizacion y ejecucion del modelo de indice de priorizacion.
-# MAGIC
-# MAGIC **Proyecto:** Priorizacion de Stock Toledano.
-# MAGIC **Migracion:** Azure Data Factory a Databricks Asset Bundles.
+# MAGIC Priorizacion de Stock Toledano.
 
 # COMMAND ----------
-# Comentarios de mantenimiento:
-# - Mantener este notebook como orquestador de la etapa correspondiente.
-# - Ubicar la logica reutilizable en src/priorizacion_stock_toledano.
-# - Resolver credenciales, endpoints y tokens exclusivamente desde Secret Scope.
-# - No imprimir secretos ni URLs firmadas en logs o salidas del notebook.
-
-# COMMAND ----------
-# MAGIC %md
-# MAGIC ## Parametros y configuracion de entrada
-# MAGIC Los widgets definidos a continuacion son inyectados por Databricks Jobs o por ejecuciones manuales controladas.
-
 dbutils.widgets.text("ambiente", "dev")
 dbutils.widgets.text("execution_id", "")
 dbutils.widgets.text("fecha_filtro", "")
