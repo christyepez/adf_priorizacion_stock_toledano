@@ -149,7 +149,9 @@ La arquitectura prohibe credenciales, tokens, passwords y URLs firmadas en codig
 Los parametros sensibles relevantes son:
 
 - `sql_control_*_secret`
-- `sql_publication_*_secret`
+- `sql_publication_username_secret`
+- `sql_publication_password_secret`
+- `sql_publication_server` y `sql_publication_database` se configuran como valores no sensibles del bundle, de acuerdo con los linked services del ARM.
 - `sap_hana_*_secret`
 - `sharepoint_*_secret`
 - `notification_endpoint_secret`

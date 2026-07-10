@@ -7,7 +7,7 @@ resources:
         pipeline_adf_origen: 0_ext_saphana_priorizacion_stock
         sistema_fuente: SapHana
       job_clusters:
-        - job_cluster_key: job_cluster
+        - job_cluster_key: ${var.job_cluster_key}
           new_cluster:
             spark_version: 15.4.x-scala2.12
             node_type_id: Standard_DS3_v2
@@ -31,7 +31,7 @@ resources:
           default: ""
       tasks:
         - task_key: ext_saphana_priorizacion_stock
-          job_cluster_key: job_cluster
+          job_cluster_key: ${var.job_cluster_key}
           notebook_task:
             notebook_path: ../../notebooks/02_extraccion/nb_ext_saphana_priorizacion_stock.py
             base_parameters:
@@ -43,12 +43,16 @@ resources:
               modo_ejecucion: "{{job.parameters.modo_ejecucion}}"
               fail_fast: "true"
               secret_scope: ${var.secret_scope}
-              storage_account: ${var.storage_account}
+              storage_account_name: ${var.storage_account_name}
               sql_control_server_secret: ${var.sql_control_server_secret}
               sql_control_database_secret: ${var.sql_control_database_secret}
               sql_control_username_secret: ${var.sql_control_username_secret}
               sql_control_password_secret: ${var.sql_control_password_secret}
+              sql_control_encrypt: ${var.sql_control_encrypt}
+              sql_control_trust_server_certificate: ${var.sql_control_trust_server_certificate}
               sap_hana_server_secret: ${var.sap_hana_server_secret}
               sap_hana_port_secret: ${var.sap_hana_port_secret}
               sap_hana_username_secret: ${var.sap_hana_username_secret}
               sap_hana_password_secret: ${var.sap_hana_password_secret}
+              sap_hana_driver: ${var.sap_hana_driver}
+              sap_hana_propietario_fuente: ${var.sap_hana_propietario_fuente}

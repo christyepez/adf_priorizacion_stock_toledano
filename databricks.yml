@@ -8,73 +8,222 @@ variables:
   ambiente:
     description: Ambiente logico de ejecucion.
     default: dev
-  catalog_bronze:
-    description: Catalogo bronze de Unity Catalog.
-  catalog_silver:
-    description: Catalogo silver de Unity Catalog.
-  catalog_gold:
-    description: Catalogo gold de Unity Catalog.
-  schema_sap:
-    description: Schema para objetos SAP.
-    default: sap
-  schema_sharepoint:
-    description: Schema para objetos SharePoint.
-    default: sharepoint
-  schema_atlas:
-    description: Schema para objetos finales Atlas.
-    default: atlas
-  secret_scope:
-    description: Secret scope respaldado por Key Vault o Databricks Secrets.
-  storage_account:
-    description: Nombre de storage account ADLS sin URL ni SAS.
-  sql_control_server_secret:
-    description: Nombre del secreto del servidor SQL de control.
-  sql_control_database_secret:
-    description: Nombre del secreto de la base SQL de control.
-  sql_control_username_secret:
-    description: Nombre del secreto del usuario SQL de control.
-  sql_control_password_secret:
-    description: Nombre del secreto del password SQL de control.
-  sql_publication_server_secret:
-    description: Nombre del secreto del servidor SQL de publicacion.
-  sql_publication_database_secret:
-    description: Nombre del secreto de la base SQL de publicacion.
-  sql_publication_username_secret:
-    description: Nombre del secreto del usuario SQL de publicacion.
-  sql_publication_password_secret:
-    description: Nombre del secreto del password SQL de publicacion.
-  notification_endpoint_secret:
-    description: Nombre del secreto del endpoint de notificacion.
-  sap_hana_server_secret:
-    description: Nombre del secreto del host SAP HANA.
-    default: sap-hana-server
-  sap_hana_port_secret:
-    description: Nombre del secreto del puerto SAP HANA.
-    default: sap-hana-port
-  sap_hana_username_secret:
-    description: Nombre del secreto del usuario SAP HANA.
-    default: sap-hana-username
-  sap_hana_password_secret:
-    description: Nombre del secreto del password SAP HANA.
-    default: sap-hana-password
-  sharepoint_base_url_secret:
-    description: Nombre del secreto de la URL base segura de Graph o SharePoint.
-    default: sharepoint-base-url
-  sharepoint_token_secret:
-    description: Nombre opcional del secreto de token reutilizable SharePoint.
-    default: ""
-  sharepoint_client_id_secret:
-    description: Nombre del secreto del client id para OAuth SharePoint.
-    default: sharepoint-client-id
-  sharepoint_client_secret_secret:
-    description: Nombre del secreto del client secret para OAuth SharePoint.
-    default: sharepoint-client-secret
-  sharepoint_tenant_id_secret:
-    description: Nombre del secreto del tenant id para OAuth SharePoint.
-    default: sharepoint-tenant-id
+
   modo_control:
     description: Modo de control permitido: get_control_cargas o lakebase.
     default: get_control_cargas
+
+  modo_ejecucion:
+    description: Modo de ejecucion del proceso.
+    default: normal
+
+  catalog_bronze:
+    description: Catalogo bronze de Unity Catalog.
+    default: toledano_bronze_dev
+
+  catalog_silver:
+    description: Catalogo silver de Unity Catalog.
+    default: toledano_silver_dev
+
+  catalog_gold:
+    description: Catalogo gold de Unity Catalog.
+    default: toledano_gold_dev
+
+  schema_sap:
+    description: Schema para objetos SAP.
+    default: sap
+
+  schema_sharepoint:
+    description: Schema para objetos SharePoint.
+    default: sharepoint
+
+  schema_atlas:
+    description: Schema para objetos finales Atlas.
+    default: atlas
+
+  schema_audit:
+    description: Schema para auditoria tecnica.
+    default: audit
+
+  secret_scope:
+    description: Secret scope respaldado por Azure Key Vault o Databricks Secrets.
+    default: kv-bigd-toledano-dev-01
+
+  key_vault_url:
+    description: URL publica del Azure Key Vault usado como respaldo del secret scope.
+    default: https://kv-bigd-toledano-dev-01.vault.azure.net/
+
+  storage_account_url:
+    description: URL DFS publica del Data Lake Toledano, sin SAS ni tokens.
+    default: https://dlsbigdatatoledanodev.dfs.core.windows.net/
+
+  storage_account_name:
+    description: Nombre del storage account ADLS.
+    default: dlsbigdatatoledanodev
+
+  storage_account_key_secret:
+    description: Nombre del secreto del access key del storage account si aplica.
+    default: sc-dlsbigdatatoledano-key
+
+  bronze_container:
+    description: Contenedor bronze.
+    default: bronze
+
+  silver_container:
+    description: Contenedor silver.
+    default: silver
+
+  gold_container:
+    description: Contenedor gold.
+    default: gold
+
+  staging_path:
+    description: Ruta temporal usada para staging.
+    default: bronze/temp
+
+  sql_control_server_secret:
+    description: Nombre del secreto del servidor SQL de control.
+    default: sc-sqlbigdatatoledano-server
+
+  sql_control_database_secret:
+    description: Nombre del secreto de la base SQL de control.
+    default: sc-sqlbigdatatoledano-database
+
+  sql_control_username_secret:
+    description: Nombre del secreto del usuario SQL de control.
+    default: sc-sqlbigdatatoledano-username
+
+  sql_control_password_secret:
+    description: Nombre del secreto del password SQL de control.
+    default: sc-sqlbigdatatoledano-password
+
+  sql_control_schema:
+    description: Schema donde vive el procedimiento de control.
+    default: conf
+
+  sql_control_table:
+    description: Tabla de control usada por ADF.
+    default: ControlCargas
+
+  sql_control_sp:
+    description: Procedimiento de control de cargas.
+    default: conf.GetControlCargas
+
+  sql_control_encrypt:
+    description: Cifrado de conexion SQL Control.
+    default: "true"
+
+  sql_control_trust_server_certificate:
+    description: Trust server certificate para SQL Control.
+    default: "false"
+
+  sql_publication_server:
+    description: Servidor SQL destino para publicacion.
+    default: PTSVR2003
+
+  sql_publication_database:
+    description: Base SQL destino para publicacion.
+    default: ORC_SAP
+
+  sql_publication_username_secret:
+    description: Nombre del secreto del usuario SQL de publicacion.
+    default: sc-sql-orcpanama-username
+
+  sql_publication_password_secret:
+    description: Nombre del secreto del password SQL de publicacion.
+    default: sc-sql-orcpanama-password
+
+  sql_publication_schema:
+    description: Schema SQL destino de publicacion.
+    default: dbo
+
+  sql_publication_table:
+    description: Tabla SQL destino de publicacion.
+    default: Int_Prioriza_Clientes
+
+  sql_publication_encrypt:
+    description: Cifrado de conexion SQL publicacion.
+    default: "true"
+
+  sql_publication_trust_server_certificate:
+    description: Trust server certificate para SQL publicacion.
+    default: "true"
+
+  sap_hana_server_secret:
+    description: Nombre del secreto del host SAP HANA.
+    default: sc-saphana-servernode
+
+  sap_hana_port_secret:
+    description: Nombre opcional del secreto del puerto SAP HANA.
+    default: ""
+
+  sap_hana_username_secret:
+    description: Nombre del secreto del usuario SAP HANA.
+    default: sc-saphana-username
+
+  sap_hana_password_secret:
+    description: Nombre del secreto del password SAP HANA.
+    default: sc-saphana-password
+
+  sap_hana_driver:
+    description: Driver JDBC SAP HANA.
+    default: com.sap.db.jdbc.Driver
+
+  sap_hana_propietario_fuente:
+    description: Valor de PropietarioFuente para SAP HANA en GetControlCargas.
+    default: VistasSapHana
+
+  sharepoint_base_url:
+    description: URL base publica de SharePoint o Graph, sin firmas ni tokens.
+    default: https://pronaca365.sharepoint.com/
+
+  sharepoint_auth_mode:
+    description: Modo de autenticacion SharePoint.
+    default: graph_client_credentials
+
+  sharepoint_token_secret:
+    description: Nombre opcional del secreto de token reutilizable SharePoint.
+    default: ""
+
+  sharepoint_client_id_secret:
+    description: Nombre del secreto del client id para OAuth SharePoint.
+    default: sc-sharepoint-client-id
+
+  sharepoint_client_secret_secret:
+    description: Nombre del secreto del client secret para OAuth SharePoint.
+    default: sc-sharepoint-secret-id
+
+  sharepoint_tenant_id_secret:
+    description: Nombre del secreto del tenant id para OAuth SharePoint.
+    default: sc-sharepoint-tenant-id
+
+  sharepoint_site_id_secret:
+    description: Nombre del secreto del site id para Graph SharePoint.
+    default: sc-sharepoint-site-id
+
+  sharepoint_drive_id_secret:
+    description: Nombre del secreto del drive id para Graph SharePoint.
+    default: sc-sharepoint-drive-id
+
+  sharepoint_propietario_fuente:
+    description: Valor de PropietarioFuente para SharePoint en GetControlCargas.
+    default: DatosPortalDeInformacion
+
+  notification_endpoint_secret:
+    description: Nombre del secreto del endpoint de notificacion.
+    default: sc-logicapp-notification-endpoint
+
+  notification_enabled:
+    description: Activa o desactiva notificaciones.
+    default: "true"
+
+  emails:
+    description: Correos por defecto del modelo Priorizacion Stock.
+    default: "jose.herrera@dataknow.co; ndpaze@pronaca.com; gaproanm@pronaca.com; mrpalacg@pronaca.com"
+
+  job_cluster_key:
+    description: Cluster compartido para jobs del bundle.
+    default: job_cluster_priorizacion_stock
 
 targets:
   dev:
@@ -84,30 +233,59 @@ targets:
       root_path: /Shared/.bundle/${bundle.name}/${bundle.target}
     variables:
       ambiente: dev
+      modo_control: get_control_cargas
+      modo_ejecucion: normal
       catalog_bronze: toledano_bronze_dev
       catalog_silver: toledano_silver_dev
       catalog_gold: toledano_gold_dev
-      secret_scope: kv-toledano-dev
-      storage_account: dlsbigdatatoledanodev
-      sql_control_server_secret: sql-control-server
-      sql_control_database_secret: sql-control-database
-      sql_control_username_secret: sql-control-username
-      sql_control_password_secret: sql-control-password
-      sql_publication_server_secret: sql-publication-server
-      sql_publication_database_secret: sql-publication-database
-      sql_publication_username_secret: sql-publication-username
-      sql_publication_password_secret: sql-publication-password
-      notification_endpoint_secret: notification-endpoint
-      sap_hana_server_secret: sap-hana-server
-      sap_hana_port_secret: sap-hana-port
-      sap_hana_username_secret: sap-hana-username
-      sap_hana_password_secret: sap-hana-password
-      sharepoint_base_url_secret: sharepoint-base-url
+      schema_sap: sap
+      schema_sharepoint: sharepoint
+      schema_atlas: atlas
+      schema_audit: audit
+      secret_scope: kv-bigd-toledano-dev-01
+      key_vault_url: https://kv-bigd-toledano-dev-01.vault.azure.net/
+      storage_account_url: https://dlsbigdatatoledanodev.dfs.core.windows.net/
+      storage_account_name: dlsbigdatatoledanodev
+      storage_account_key_secret: sc-dlsbigdatatoledano-key
+      bronze_container: bronze
+      silver_container: silver
+      gold_container: gold
+      staging_path: bronze/temp
+      sql_control_server_secret: sc-sqlbigdatatoledano-server
+      sql_control_database_secret: sc-sqlbigdatatoledano-database
+      sql_control_username_secret: sc-sqlbigdatatoledano-username
+      sql_control_password_secret: sc-sqlbigdatatoledano-password
+      sql_control_schema: conf
+      sql_control_table: ControlCargas
+      sql_control_sp: conf.GetControlCargas
+      sql_control_encrypt: "true"
+      sql_control_trust_server_certificate: "false"
+      sql_publication_server: PTSVR2003
+      sql_publication_database: ORC_SAP
+      sql_publication_username_secret: sc-sql-orcpanama-username
+      sql_publication_password_secret: sc-sql-orcpanama-password
+      sql_publication_schema: dbo
+      sql_publication_table: Int_Prioriza_Clientes
+      sql_publication_encrypt: "true"
+      sql_publication_trust_server_certificate: "true"
+      sap_hana_server_secret: sc-saphana-servernode
+      sap_hana_port_secret: ""
+      sap_hana_username_secret: sc-saphana-username
+      sap_hana_password_secret: sc-saphana-password
+      sap_hana_driver: com.sap.db.jdbc.Driver
+      sap_hana_propietario_fuente: VistasSapHana
+      sharepoint_base_url: https://pronaca365.sharepoint.com/
+      sharepoint_auth_mode: graph_client_credentials
       sharepoint_token_secret: ""
-      sharepoint_client_id_secret: sharepoint-client-id
-      sharepoint_client_secret_secret: sharepoint-client-secret
-      sharepoint_tenant_id_secret: sharepoint-tenant-id
-      modo_control: get_control_cargas
+      sharepoint_client_id_secret: sc-sharepoint-client-id
+      sharepoint_client_secret_secret: sc-sharepoint-secret-id
+      sharepoint_tenant_id_secret: sc-sharepoint-tenant-id
+      sharepoint_site_id_secret: sc-sharepoint-site-id
+      sharepoint_drive_id_secret: sc-sharepoint-drive-id
+      sharepoint_propietario_fuente: DatosPortalDeInformacion
+      notification_endpoint_secret: sc-logicapp-notification-endpoint
+      notification_enabled: "true"
+      emails: "jose.herrera@dataknow.co; ndpaze@pronaca.com; gaproanm@pronaca.com; mrpalacg@pronaca.com"
 
   test:
     mode: development
@@ -115,58 +293,116 @@ targets:
       root_path: /Shared/.bundle/${bundle.name}/${bundle.target}
     variables:
       ambiente: test
+      modo_control: get_control_cargas
+      modo_ejecucion: normal
       catalog_bronze: toledano_bronze_test
       catalog_silver: toledano_silver_test
       catalog_gold: toledano_gold_test
-      secret_scope: kv-toledano-test
-      storage_account: dlsbigdatatoledanotest
-      sql_control_server_secret: sql-control-server
-      sql_control_database_secret: sql-control-database
-      sql_control_username_secret: sql-control-username
-      sql_control_password_secret: sql-control-password
-      sql_publication_server_secret: sql-publication-server
-      sql_publication_database_secret: sql-publication-database
-      sql_publication_username_secret: sql-publication-username
-      sql_publication_password_secret: sql-publication-password
-      notification_endpoint_secret: notification-endpoint
-      sap_hana_server_secret: sap-hana-server
-      sap_hana_port_secret: sap-hana-port
-      sap_hana_username_secret: sap-hana-username
-      sap_hana_password_secret: sap-hana-password
-      sharepoint_base_url_secret: sharepoint-base-url
+      schema_sap: sap
+      schema_sharepoint: sharepoint
+      schema_atlas: atlas
+      schema_audit: audit
+      secret_scope: kv-bigd-toledano-dev-01
+      key_vault_url: https://kv-bigd-toledano-dev-01.vault.azure.net/
+      storage_account_url: https://dlsbigdatatoledanodev.dfs.core.windows.net/
+      storage_account_name: dlsbigdatatoledanodev
+      storage_account_key_secret: sc-dlsbigdatatoledano-key
+      bronze_container: bronze
+      silver_container: silver
+      gold_container: gold
+      staging_path: bronze/temp
+      sql_control_server_secret: sc-sqlbigdatatoledano-server
+      sql_control_database_secret: sc-sqlbigdatatoledano-database
+      sql_control_username_secret: sc-sqlbigdatatoledano-username
+      sql_control_password_secret: sc-sqlbigdatatoledano-password
+      sql_control_schema: conf
+      sql_control_table: ControlCargas
+      sql_control_sp: conf.GetControlCargas
+      sql_control_encrypt: "true"
+      sql_control_trust_server_certificate: "false"
+      sql_publication_server: PTSVR2027
+      sql_publication_database: ORC_SAP_TEST
+      sql_publication_username_secret: sc-sql-orcpanama-username
+      sql_publication_password_secret: sc-sql-orcpanama-password
+      sql_publication_schema: dbo
+      sql_publication_table: Int_Prioriza_Clientes
+      sql_publication_encrypt: "true"
+      sql_publication_trust_server_certificate: "true"
+      sap_hana_server_secret: sc-saphana-servernode
+      sap_hana_port_secret: ""
+      sap_hana_username_secret: sc-saphana-username
+      sap_hana_password_secret: sc-saphana-password
+      sap_hana_driver: com.sap.db.jdbc.Driver
+      sap_hana_propietario_fuente: VistasSapHana
+      sharepoint_base_url: https://pronaca365.sharepoint.com/
+      sharepoint_auth_mode: graph_client_credentials
       sharepoint_token_secret: ""
-      sharepoint_client_id_secret: sharepoint-client-id
-      sharepoint_client_secret_secret: sharepoint-client-secret
-      sharepoint_tenant_id_secret: sharepoint-tenant-id
-      modo_control: get_control_cargas
+      sharepoint_client_id_secret: sc-sharepoint-client-id
+      sharepoint_client_secret_secret: sc-sharepoint-secret-id
+      sharepoint_tenant_id_secret: sc-sharepoint-tenant-id
+      sharepoint_site_id_secret: sc-sharepoint-site-id
+      sharepoint_drive_id_secret: sc-sharepoint-drive-id
+      sharepoint_propietario_fuente: DatosPortalDeInformacion
+      notification_endpoint_secret: sc-logicapp-notification-endpoint
+      notification_enabled: "true"
+      emails: "jose.herrera@dataknow.co; ndpaze@pronaca.com; gaproanm@pronaca.com; mrpalacg@pronaca.com"
 
   prod:
     mode: production
     workspace:
       root_path: /Shared/.bundle/${bundle.name}/${bundle.target}
     variables:
-      ambiente: prod
-      catalog_bronze: toledano_bronze_prod
-      catalog_silver: toledano_silver_prod
-      catalog_gold: toledano_gold_prod
-      secret_scope: kv-toledano-prod
-      storage_account: dlsbigdatatoledanoprod
-      sql_control_server_secret: sql-control-server
-      sql_control_database_secret: sql-control-database
-      sql_control_username_secret: sql-control-username
-      sql_control_password_secret: sql-control-password
-      sql_publication_server_secret: sql-publication-server
-      sql_publication_database_secret: sql-publication-database
-      sql_publication_username_secret: sql-publication-username
-      sql_publication_password_secret: sql-publication-password
-      notification_endpoint_secret: notification-endpoint
-      sap_hana_server_secret: sap-hana-server
-      sap_hana_port_secret: sap-hana-port
-      sap_hana_username_secret: sap-hana-username
-      sap_hana_password_secret: sap-hana-password
-      sharepoint_base_url_secret: sharepoint-base-url
-      sharepoint_token_secret: ""
-      sharepoint_client_id_secret: sharepoint-client-id
-      sharepoint_client_secret_secret: sharepoint-client-secret
-      sharepoint_tenant_id_secret: sharepoint-tenant-id
+      ambiente: prd
       modo_control: get_control_cargas
+      modo_ejecucion: normal
+      catalog_bronze: toledano_bronze_prd
+      catalog_silver: toledano_silver_prd
+      catalog_gold: toledano_gold_prd
+      schema_sap: sap
+      schema_sharepoint: sharepoint
+      schema_atlas: atlas
+      schema_audit: audit
+      secret_scope: kv-bigd-toledano-dev-01
+      key_vault_url: https://kv-bigd-toledano-dev-01.vault.azure.net/
+      storage_account_url: https://dlsbigdatatoledanodev.dfs.core.windows.net/
+      storage_account_name: dlsbigdatatoledanodev
+      storage_account_key_secret: sc-dlsbigdatatoledano-key
+      bronze_container: bronze
+      silver_container: silver
+      gold_container: gold
+      staging_path: bronze/temp
+      sql_control_server_secret: sc-sqlbigdatatoledano-server
+      sql_control_database_secret: sc-sqlbigdatatoledano-database
+      sql_control_username_secret: sc-sqlbigdatatoledano-username
+      sql_control_password_secret: sc-sqlbigdatatoledano-password
+      sql_control_schema: conf
+      sql_control_table: ControlCargas
+      sql_control_sp: conf.GetControlCargas
+      sql_control_encrypt: "true"
+      sql_control_trust_server_certificate: "false"
+      sql_publication_server: PTSVR2003
+      sql_publication_database: ORC_SAP
+      sql_publication_username_secret: sc-sql-orcpanama-username
+      sql_publication_password_secret: sc-sql-orcpanama-password
+      sql_publication_schema: dbo
+      sql_publication_table: Int_Prioriza_Clientes
+      sql_publication_encrypt: "true"
+      sql_publication_trust_server_certificate: "true"
+      sap_hana_server_secret: sc-saphana-servernode
+      sap_hana_port_secret: ""
+      sap_hana_username_secret: sc-saphana-username
+      sap_hana_password_secret: sc-saphana-password
+      sap_hana_driver: com.sap.db.jdbc.Driver
+      sap_hana_propietario_fuente: VistasSapHana
+      sharepoint_base_url: https://pronaca365.sharepoint.com/
+      sharepoint_auth_mode: graph_client_credentials
+      sharepoint_token_secret: ""
+      sharepoint_client_id_secret: sc-sharepoint-client-id
+      sharepoint_client_secret_secret: sc-sharepoint-secret-id
+      sharepoint_tenant_id_secret: sc-sharepoint-tenant-id
+      sharepoint_site_id_secret: sc-sharepoint-site-id
+      sharepoint_drive_id_secret: sc-sharepoint-drive-id
+      sharepoint_propietario_fuente: DatosPortalDeInformacion
+      notification_endpoint_secret: sc-logicapp-notification-endpoint
+      notification_enabled: "true"
+      emails: "jose.herrera@dataknow.co; ndpaze@pronaca.com; gaproanm@pronaca.com; mrpalacg@pronaca.com"

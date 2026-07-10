@@ -112,14 +112,22 @@ def read_sap_secret_values(dbutils: Any, secret_scope: str, secret_names: SapHan
     return values
 
 
-def read_saphana_jdbc(spark: Any, *, url: str, username: str, password: str, query: str) -> Any:
+def read_saphana_jdbc(
+    spark: Any,
+    *,
+    url: str,
+    username: str,
+    password: str,
+    query: str,
+    driver: str = "com.sap.db.jdbc.Driver",
+) -> Any:
     return (
         spark.read.format("jdbc")
         .option("url", url)
         .option("query", query)
         .option("user", username)
         .option("password", password)
-        .option("driver", "com.sap.db.jdbc.Driver")
+        .option("driver", driver)
         .load()
     )
 

@@ -17,6 +17,8 @@ dbutils.widgets.text("sql_control_server_secret", "sql-control-server")
 dbutils.widgets.text("sql_control_database_secret", "sql-control-database")
 dbutils.widgets.text("sql_control_username_secret", "sql-control-username")
 dbutils.widgets.text("sql_control_password_secret", "sql-control-password")
+dbutils.widgets.text("sql_control_encrypt", "true")
+dbutils.widgets.text("sql_control_trust_server_certificate", "false")
 dbutils.widgets.text("audit_delta_enabled", "false")
 dbutils.widgets.text("audit_delta_table", "")
 
@@ -39,6 +41,10 @@ anio_mes_dia_inicial = dbutils.widgets.get("AñoMesDiaInicial")
 anio_mes_dia_final = dbutils.widgets.get("AñoMesDiaFinal")
 propietario_fuente = dbutils.widgets.get("propietario_fuente").strip()
 secret_scope = dbutils.widgets.get("secret_scope")
+sql_control_encrypt = dbutils.widgets.get("sql_control_encrypt").strip() or "true"
+sql_control_trust_server_certificate = (
+    dbutils.widgets.get("sql_control_trust_server_certificate").strip() or "false"
+)
 audit_delta_enabled = dbutils.widgets.get("audit_delta_enabled").strip().lower() == "true"
 audit_delta_table = dbutils.widgets.get("audit_delta_table").strip()
 
@@ -62,7 +68,12 @@ secret_values = read_sql_secret_values(
 
 df_raw = read_get_control_cargas_jdbc(
     spark,
-    url=jdbc_url(secret_values["server"], secret_values["database"]),
+    url=jdbc_url(
+        secret_values["server"],
+        secret_values["database"],
+        encrypt=sql_control_encrypt,
+        trust_server_certificate=sql_control_trust_server_certificate,
+    ),
     username=secret_values["username"],
     password=secret_values["password"],
     query=query,

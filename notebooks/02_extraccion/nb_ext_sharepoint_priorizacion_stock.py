@@ -14,16 +14,22 @@ dbutils.widgets.text("AñoMesDiaFinal", "0")
 dbutils.widgets.text("execution_id", "")
 dbutils.widgets.text("fail_fast", "true")
 dbutils.widgets.text("secret_scope", "")
-dbutils.widgets.text("storage_account", "")
+dbutils.widgets.text("storage_account_name", "")
 dbutils.widgets.text("sql_control_server_secret", "sql-control-server")
 dbutils.widgets.text("sql_control_database_secret", "sql-control-database")
 dbutils.widgets.text("sql_control_username_secret", "sql-control-username")
 dbutils.widgets.text("sql_control_password_secret", "sql-control-password")
-dbutils.widgets.text("sharepoint_base_url_secret", "sharepoint-base-url")
+dbutils.widgets.text("sql_control_encrypt", "true")
+dbutils.widgets.text("sql_control_trust_server_certificate", "false")
+dbutils.widgets.text("sharepoint_base_url", "")
+dbutils.widgets.text("sharepoint_auth_mode", "graph_client_credentials")
 dbutils.widgets.text("sharepoint_token_secret", "")
 dbutils.widgets.text("sharepoint_client_id_secret", "sharepoint-client-id")
 dbutils.widgets.text("sharepoint_client_secret_secret", "sharepoint-client-secret")
 dbutils.widgets.text("sharepoint_tenant_id_secret", "sharepoint-tenant-id")
+dbutils.widgets.text("sharepoint_site_id_secret", "")
+dbutils.widgets.text("sharepoint_drive_id_secret", "")
+dbutils.widgets.text("sharepoint_propietario_fuente", "DatosPortalDeInformacion")
 dbutils.widgets.text("metrics_delta_table", "")
 
 from uuid import uuid4
@@ -63,7 +69,15 @@ anio_mes_dia_final = dbutils.widgets.get("AñoMesDiaFinal")
 execution_id = dbutils.widgets.get("execution_id").strip() or str(uuid4())
 fail_fast = dbutils.widgets.get("fail_fast").strip().lower() == "true"
 secret_scope = dbutils.widgets.get("secret_scope")
-storage_account = dbutils.widgets.get("storage_account")
+storage_account_name = dbutils.widgets.get("storage_account_name")
+sql_control_encrypt = dbutils.widgets.get("sql_control_encrypt").strip() or "true"
+sql_control_trust_server_certificate = (
+    dbutils.widgets.get("sql_control_trust_server_certificate").strip() or "false"
+)
+sharepoint_base_url = dbutils.widgets.get("sharepoint_base_url").strip()
+sharepoint_propietario_fuente = (
+    dbutils.widgets.get("sharepoint_propietario_fuente").strip() or "DatosPortalDeInformacion"
+)
 metrics_delta_table = dbutils.widgets.get("metrics_delta_table").strip()
 
 control_secrets = read_sql_secret_values(
@@ -86,7 +100,12 @@ control_query = build_get_control_cargas_query(
 
 df_control_raw = read_get_control_cargas_jdbc(
     spark,
-    url=jdbc_url(control_secrets["server"], control_secrets["database"]),
+    url=jdbc_url(
+        control_secrets["server"],
+        control_secrets["database"],
+        encrypt=sql_control_encrypt,
+        trust_server_certificate=sql_control_trust_server_certificate,
+    ),
     username=control_secrets["username"],
     password=control_secrets["password"],
     query=control_query,
@@ -95,13 +114,15 @@ df_control_raw = read_get_control_cargas_jdbc(
 df_control = (
     normalize_spark_dataframe(df_control_raw)
     .filter(col("activo") == True)
-    .filter(col("propietario_fuente") == "DatosPortalDeInformacion")
+    .filter(col("propietario_fuente") == sharepoint_propietario_fuente)
     .orderBy(col("orden_ejecucion").asc(), col("nombre_archivo_fuente").asc())
 )
 
 control_rows = [row.asDict(recursive=True) for row in df_control.collect()]
 if not control_rows:
-    raise ValueError("No existen registros activos de control para PropietarioFuente=DatosPortalDeInformacion")
+    raise ValueError(
+        f"No existen registros activos de control para PropietarioFuente={sharepoint_propietario_fuente}"
+    )
 
 sp_secret_values = read_sharepoint_secret_values(
     dbutils,
@@ -111,11 +132,10 @@ sp_secret_values = read_sharepoint_secret_values(
         client_id=dbutils.widgets.get("sharepoint_client_id_secret").strip() or None,
         client_secret=dbutils.widgets.get("sharepoint_client_secret_secret").strip() or None,
         tenant_id=dbutils.widgets.get("sharepoint_tenant_id_secret").strip() or None,
-        base_url=dbutils.widgets.get("sharepoint_base_url_secret").strip() or None,
     ),
 )
 
-base_url = sp_secret_values["base_url"]
+base_url = sharepoint_base_url
 assert_https_url(base_url)
 reject_signed_or_secret_url(base_url)
 
@@ -143,7 +163,7 @@ errors = []
 for record in control_rows:
     archivo_origen = build_source_file_name(record)
     archivo_destino = build_bronze_path(
-        storage_account=storage_account,
+        storage_account=storage_account_name,
         folder=record["ruta_archivo_destino"],
         filename=record["nombre_archivo_destino"],
         extension=record["extension_archivo_destino"],

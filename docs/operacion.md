@@ -126,7 +126,7 @@ El modo configurado en jobs es `truncate_insert`.
 | Falla Bronze to Silver | Revisar columnas obligatorias y cambios de schema |
 | Falla modelo | Revisar disponibilidad de tablas Silver y columnas del modelo |
 | Falla calidad | Consultar `quality_results` por `execution_id` |
-| Falla publicacion SQL | Validar secretos SQL publicacion, permisos y tabla destino |
+| Falla publicacion SQL | Validar `sql_publication_server`, `sql_publication_database`, secretos de usuario/password, permisos y tabla destino |
 | Falla notificacion | Consultar evento `WARNING` en auditoria; no debe ocultar el error original |
 
 ## 9. Reprocesos

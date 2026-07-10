@@ -140,15 +140,22 @@ def validate_active_records(records: Iterable[Mapping[str, Any]]) -> list[dict[s
     return active
 
 
-def jdbc_url(server: str, database: str) -> str:
+def jdbc_url(
+    server: str,
+    database: str,
+    *,
+    encrypt: str | bool = "true",
+    trust_server_certificate: str | bool = "false",
+) -> str:
     if not server or not database:
         raise ValueError("server y database son obligatorios para construir el JDBC URL")
+    encrypt_value = str(encrypt).strip().lower()
+    trust_value = str(trust_server_certificate).strip().lower()
     return (
         f"jdbc:sqlserver://{server};"
         f"databaseName={database};"
-        "encrypt=true;"
-        "trustServerCertificate=false;"
-        "hostNameInCertificate=*.database.windows.net;"
+        f"encrypt={encrypt_value};"
+        f"trustServerCertificate={trust_value};"
         "loginTimeout=30;"
     )
 

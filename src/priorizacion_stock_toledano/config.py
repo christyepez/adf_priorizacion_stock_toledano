@@ -13,9 +13,11 @@ class BundleConfig:
     schema_sap: str
     schema_sharepoint: str
     schema_atlas: str
+    schema_audit: str
     secret_scope: str
-    storage_account: str
+    storage_account_name: str
     modo_control: str
+    modo_ejecucion: str = "normal"
 
 
 def validate_control_mode(modo_control: str) -> str:

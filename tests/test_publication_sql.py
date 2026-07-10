@@ -16,8 +16,6 @@ class FakeSecrets:
     def __init__(self):
         self.calls = []
         self.values = {
-            ("scope", "server-secret"): "sql.example.database.windows.net",
-            ("scope", "database-secret"): "db",
             ("scope", "username-secret"): "user",
             ("scope", "password-secret"): "pwd",
         }
@@ -82,10 +80,11 @@ class FakeSpark:
 
 
 def test_jdbc_url_has_no_credentials():
-    url = jdbc_url("sql.example.database.windows.net", "pub")
+    url = jdbc_url("PTSVR2003", "ORC_SAP", trust_server_certificate="true")
 
-    assert "jdbc:sqlserver://sql.example.database.windows.net;" in url
-    assert "databaseName=pub" in url
+    assert "jdbc:sqlserver://PTSVR2003;" in url
+    assert "databaseName=ORC_SAP" in url
+    assert "trustServerCertificate=true" in url
     assert "password" not in url.lower()
     assert "user=" not in url.lower()
 
@@ -117,15 +116,15 @@ def test_read_sql_publication_secret_values_uses_secret_scope():
         dbutils,
         "scope",
         SqlPublicationSecretNames(
-            server="server-secret",
-            database="database-secret",
             username="username-secret",
             password="password-secret",
         ),
     )
 
-    assert values["server"] == "sql.example.database.windows.net"
+    assert values["username"] == "user"
     assert values["password"] == "pwd"
+    assert "server" not in values
+    assert "database" not in values
     assert ("scope", "password-secret") in dbutils.secrets.calls
 
 

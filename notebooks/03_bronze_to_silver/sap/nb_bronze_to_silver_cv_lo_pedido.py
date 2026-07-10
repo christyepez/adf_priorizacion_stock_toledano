@@ -10,7 +10,7 @@ dbutils.widgets.text("ambiente", "dev")
 dbutils.widgets.text("catalog_bronze", "")
 dbutils.widgets.text("catalog_silver", "")
 dbutils.widgets.text("schema_sap", "sap")
-dbutils.widgets.text("storage_account", "")
+dbutils.widgets.text("storage_account_name", "")
 dbutils.widgets.text("execution_id", "")
 
 from uuid import uuid4
@@ -24,12 +24,12 @@ ambiente = dbutils.widgets.get("ambiente")
 catalog_bronze = dbutils.widgets.get("catalog_bronze") or f"toledano_bronze_{ambiente}"
 catalog_silver = dbutils.widgets.get("catalog_silver") or f"toledano_silver_{ambiente}"
 schema_sap = dbutils.widgets.get("schema_sap") or "sap"
-storage_account = dbutils.widgets.get("storage_account")
+storage_account_name = dbutils.widgets.get("storage_account_name")
 execution_id = dbutils.widgets.get("execution_id").strip() or str(uuid4())
 
 source_table = f"{catalog_bronze}.{schema_sap}.fact_cv_lo_pedido"
 target_table = f"{catalog_silver}.{schema_sap}.fact_cv_lo_pedido"
-target_path = silver_table_path(storage_account, "sap/fact_cv_lo_pedido")
+target_path = silver_table_path(storage_account_name, "sap/fact_cv_lo_pedido")
 
 df_source = spark.read.table(source_table)
 rows_read = df_source.count()

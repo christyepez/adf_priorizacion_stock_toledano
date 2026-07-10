@@ -14,15 +14,19 @@ dbutils.widgets.text("AñoMesDiaFinal", "0")
 dbutils.widgets.text("execution_id", "")
 dbutils.widgets.text("fail_fast", "true")
 dbutils.widgets.text("secret_scope", "")
-dbutils.widgets.text("storage_account", "")
+dbutils.widgets.text("storage_account_name", "")
 dbutils.widgets.text("sql_control_server_secret", "sql-control-server")
 dbutils.widgets.text("sql_control_database_secret", "sql-control-database")
 dbutils.widgets.text("sql_control_username_secret", "sql-control-username")
 dbutils.widgets.text("sql_control_password_secret", "sql-control-password")
+dbutils.widgets.text("sql_control_encrypt", "true")
+dbutils.widgets.text("sql_control_trust_server_certificate", "false")
 dbutils.widgets.text("sap_hana_server_secret", "sap-hana-server")
 dbutils.widgets.text("sap_hana_port_secret", "")
 dbutils.widgets.text("sap_hana_username_secret", "sap-hana-username")
 dbutils.widgets.text("sap_hana_password_secret", "sap-hana-password")
+dbutils.widgets.text("sap_hana_driver", "com.sap.db.jdbc.Driver")
+dbutils.widgets.text("sap_hana_propietario_fuente", "VistasSapHana")
 dbutils.widgets.text("metrics_delta_table", "")
 
 from uuid import uuid4
@@ -60,7 +64,13 @@ anio_mes_dia_final = dbutils.widgets.get("AñoMesDiaFinal")
 execution_id = dbutils.widgets.get("execution_id").strip() or str(uuid4())
 fail_fast = dbutils.widgets.get("fail_fast").strip().lower() == "true"
 secret_scope = dbutils.widgets.get("secret_scope")
-storage_account = dbutils.widgets.get("storage_account")
+storage_account_name = dbutils.widgets.get("storage_account_name")
+sql_control_encrypt = dbutils.widgets.get("sql_control_encrypt").strip() or "true"
+sql_control_trust_server_certificate = (
+    dbutils.widgets.get("sql_control_trust_server_certificate").strip() or "false"
+)
+sap_hana_propietario_fuente = dbutils.widgets.get("sap_hana_propietario_fuente").strip() or "VistasSapHana"
+sap_hana_driver = dbutils.widgets.get("sap_hana_driver").strip() or "com.sap.db.jdbc.Driver"
 metrics_delta_table = dbutils.widgets.get("metrics_delta_table").strip()
 
 control_secrets = read_sql_secret_values(
@@ -83,7 +93,12 @@ control_query = build_get_control_cargas_query(
 
 df_control_raw = read_get_control_cargas_jdbc(
     spark,
-    url=jdbc_url(control_secrets["server"], control_secrets["database"]),
+    url=jdbc_url(
+        control_secrets["server"],
+        control_secrets["database"],
+        encrypt=sql_control_encrypt,
+        trust_server_certificate=sql_control_trust_server_certificate,
+    ),
     username=control_secrets["username"],
     password=control_secrets["password"],
     query=control_query,
@@ -92,13 +107,13 @@ df_control_raw = read_get_control_cargas_jdbc(
 df_control = (
     normalize_spark_dataframe(df_control_raw)
     .filter(col("activo") == True)
-    .filter(col("propietario_fuente") == "VistasSapHana")
+    .filter(col("propietario_fuente") == sap_hana_propietario_fuente)
     .orderBy(col("orden_ejecucion").asc(), col("nombre_archivo_fuente").asc())
 )
 
 control_rows = [row.asDict(recursive=True) for row in df_control.collect()]
 if not control_rows:
-    raise ValueError("No existen registros activos de control para PropietarioFuente=VistasSapHana")
+    raise ValueError(f"No existen registros activos de control para PropietarioFuente={sap_hana_propietario_fuente}")
 
 sap_port_secret = dbutils.widgets.get("sap_hana_port_secret").strip() or None
 sap_secrets = read_sap_secret_values(
@@ -119,7 +134,7 @@ errors = []
 for record in control_rows:
     source_object = f"{record['ruta_archivo_fuente']}.{record['nombre_archivo_fuente']}"
     target_path = build_bronze_path(
-        storage_account=storage_account,
+        storage_account=storage_account_name,
         folder=record["ruta_archivo_destino"],
         filename=record["nombre_archivo_destino"],
         extension=record["extension_archivo_destino"],
@@ -132,6 +147,7 @@ for record in control_rows:
             username=sap_secrets["username"],
             password=sap_secrets["password"],
             query=query,
+            driver=sap_hana_driver,
         )
         rows_read = df_source.count()
         df_bronze = add_technical_columns(

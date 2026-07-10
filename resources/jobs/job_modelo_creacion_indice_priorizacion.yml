@@ -7,7 +7,7 @@ resources:
         pipeline_adf_origen: 0_actulizar_modelo_creacion_indice_priorizacion
         modelo: Modelo_Priorizacion_Stock
       job_clusters:
-        - job_cluster_key: job_cluster
+        - job_cluster_key: ${var.job_cluster_key}
           new_cluster:
             spark_version: 15.4.x-scala2.12
             node_type_id: Standard_DS3_v2
@@ -31,7 +31,7 @@ resources:
           default: ""
       tasks:
         - task_key: modelo_creacion_indice_priorizacion
-          job_cluster_key: job_cluster
+          job_cluster_key: ${var.job_cluster_key}
           notebook_task:
             notebook_path: ../../notebooks/04_modelo/nb_creacion_indice_priorizacion.py
             base_parameters:
@@ -49,7 +49,7 @@ resources:
         - task_key: publicar_resultados_sql
           depends_on:
             - task_key: modelo_creacion_indice_priorizacion
-          job_cluster_key: job_cluster
+          job_cluster_key: ${var.job_cluster_key}
           notebook_task:
             notebook_path: ../../notebooks/05_publicacion/nb_publicar_resultados_sql.py
             base_parameters:
@@ -58,18 +58,20 @@ resources:
               catalog_gold: ${var.catalog_gold}
               schema_atlas: ${var.schema_atlas}
               secret_scope: ${var.secret_scope}
-              sql_publication_server_secret: ${var.sql_publication_server_secret}
-              sql_publication_database_secret: ${var.sql_publication_database_secret}
+              sql_publication_server: ${var.sql_publication_server}
+              sql_publication_database: ${var.sql_publication_database}
               sql_publication_username_secret: ${var.sql_publication_username_secret}
               sql_publication_password_secret: ${var.sql_publication_password_secret}
+              sql_publication_encrypt: ${var.sql_publication_encrypt}
+              sql_publication_trust_server_certificate: ${var.sql_publication_trust_server_certificate}
               modo_publicacion: truncate_insert
-              target_schema: dbo
-              target_table: Int_Prioriza_Clientes
+              target_schema: ${var.sql_publication_schema}
+              target_table: ${var.sql_publication_table}
 
         - task_key: notify_success
           depends_on:
             - task_key: publicar_resultados_sql
-          job_cluster_key: job_cluster
+          job_cluster_key: ${var.job_cluster_key}
           notebook_task:
             notebook_path: ../../notebooks/07_audit/nb_notify.py
             base_parameters:

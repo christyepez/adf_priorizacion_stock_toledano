@@ -61,6 +61,8 @@ La carpeta `tests/` contiene pruebas unitarias para validar contratos, queries, 
 
 El proyecto no contiene credenciales, tokens, URLs firmadas ni secretos embebidos. Todos los valores sensibles deben resolverse por `secret_scope` usando los nombres de secreto declarados como variables del bundle.
 
+La configuracion del bundle queda alineada con el ARM de ADF: `secret_scope` apunta al scope respaldado por Key Vault, SAP HANA y SQL Control usan nombres de secretos, SharePoint recibe una URL base publica sin firmas y OAuth por secretos, y la publicacion SQL usa `sql_publication_server`/`sql_publication_database` como valores no sensibles con usuario/password desde Secret Scope.
+
 ## Comandos base
 
 ```bash

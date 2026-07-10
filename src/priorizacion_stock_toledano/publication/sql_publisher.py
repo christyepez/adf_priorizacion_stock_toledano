@@ -13,8 +13,6 @@ DEFAULT_TARGET_TABLE = "Int_Prioriza_Clientes"
 
 @dataclass(frozen=True)
 class SqlPublicationSecretNames:
-    server: str
-    database: str
     username: str
     password: str
 
@@ -31,17 +29,24 @@ class PublicationMetrics:
         return asdict(self)
 
 
-def jdbc_url(server: str, database: str) -> str:
+def jdbc_url(
+    server: str,
+    database: str,
+    *,
+    encrypt: str | bool = "true",
+    trust_server_certificate: str | bool = "false",
+) -> str:
     clean_server = (server or "").strip()
     clean_database = (database or "").strip()
     if not clean_server or not clean_database:
         raise ValueError("server y database son obligatorios para construir el JDBC URL")
+    encrypt_value = str(encrypt).strip().lower()
+    trust_value = str(trust_server_certificate).strip().lower()
     return (
         f"jdbc:sqlserver://{clean_server};"
         f"databaseName={clean_database};"
-        "encrypt=true;"
-        "trustServerCertificate=false;"
-        "hostNameInCertificate=*.database.windows.net;"
+        f"encrypt={encrypt_value};"
+        f"trustServerCertificate={trust_value};"
         "loginTimeout=30;"
     )
 
@@ -83,8 +88,6 @@ def read_sql_publication_secret_values(
     if not secret_scope:
         raise ValueError("secret_scope es obligatorio")
     return {
-        "server": dbutils.secrets.get(secret_scope, secret_names.server),
-        "database": dbutils.secrets.get(secret_scope, secret_names.database),
         "username": dbutils.secrets.get(secret_scope, secret_names.username),
         "password": dbutils.secrets.get(secret_scope, secret_names.password),
     }

@@ -7,7 +7,7 @@ resources:
         pipeline_adf_origen: ext_sharepoint_priorizacion_stock
         sistema_fuente: sharepoint
       job_clusters:
-        - job_cluster_key: job_cluster
+        - job_cluster_key: ${var.job_cluster_key}
           new_cluster:
             spark_version: 15.4.x-scala2.12
             node_type_id: Standard_DS3_v2
@@ -31,7 +31,7 @@ resources:
           default: ""
       tasks:
         - task_key: ext_sharepoint_priorizacion_stock
-          job_cluster_key: job_cluster
+          job_cluster_key: ${var.job_cluster_key}
           notebook_task:
             notebook_path: ../../notebooks/02_extraccion/nb_ext_sharepoint_priorizacion_stock.py
             base_parameters:
@@ -43,13 +43,19 @@ resources:
               modo_ejecucion: "{{job.parameters.modo_ejecucion}}"
               fail_fast: "true"
               secret_scope: ${var.secret_scope}
-              storage_account: ${var.storage_account}
+              storage_account_name: ${var.storage_account_name}
               sql_control_server_secret: ${var.sql_control_server_secret}
               sql_control_database_secret: ${var.sql_control_database_secret}
               sql_control_username_secret: ${var.sql_control_username_secret}
               sql_control_password_secret: ${var.sql_control_password_secret}
-              sharepoint_base_url_secret: ${var.sharepoint_base_url_secret}
+              sql_control_encrypt: ${var.sql_control_encrypt}
+              sql_control_trust_server_certificate: ${var.sql_control_trust_server_certificate}
+              sharepoint_base_url: ${var.sharepoint_base_url}
+              sharepoint_auth_mode: ${var.sharepoint_auth_mode}
               sharepoint_token_secret: ${var.sharepoint_token_secret}
               sharepoint_client_id_secret: ${var.sharepoint_client_id_secret}
               sharepoint_client_secret_secret: ${var.sharepoint_client_secret_secret}
               sharepoint_tenant_id_secret: ${var.sharepoint_tenant_id_secret}
+              sharepoint_site_id_secret: ${var.sharepoint_site_id_secret}
+              sharepoint_drive_id_secret: ${var.sharepoint_drive_id_secret}
+              sharepoint_propietario_fuente: ${var.sharepoint_propietario_fuente}
