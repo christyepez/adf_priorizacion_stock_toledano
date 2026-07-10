@@ -65,6 +65,8 @@ El proyecto no contiene credenciales, tokens, URLs firmadas ni secretos embebido
 
 La configuracion del bundle queda alineada con el ARM de ADF: `secret_scope` apunta al scope respaldado por Key Vault, SAP HANA y SQL Control usan nombres de secretos, SharePoint recibe una URL base publica sin firmas y OAuth por secretos, y la publicacion SQL usa `sql_publication_server`/`sql_publication_database` como valores no sensibles con usuario/password desde Secret Scope.
 
+La guia de configuracion Databricks/ADF y el mapeo de secretos disponibles esta en `docs/05_configuracion_databricks_adf.md`.
+
 ## Comandos base
 
 ```bash

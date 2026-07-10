@@ -86,5 +86,6 @@ resources:
               name: "Priorizacion Stock Toledano"
               secret_scope: ${var.secret_scope}
               notification_endpoint_secret: ${var.notification_endpoint_secret}
+              notification_enabled: ${var.notification_enabled}
               catalog_gold: ${var.catalog_gold}
               schema_atlas: ${var.schema_atlas}

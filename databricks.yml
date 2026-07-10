@@ -46,11 +46,11 @@ variables:
     default: audit
 
   secret_scope:
-    description: Secret scope respaldado por Azure Key Vault o Databricks Secrets.
-    default: kv-bigd-toledano-dev-01
+    description: Secret Scope de Databricks donde existen las keys sc-* del proyecto.
+    default: secret-kv-toledano
 
   key_vault_url:
-    description: URL publica del Azure Key Vault usado como respaldo del secret scope.
+    description: URL publica del Azure Key Vault usado como referencia documental; no se usa como secreto.
     default: https://kv-bigd-toledano-dev-01.vault.azure.net/
 
   storage_account_url:
@@ -64,6 +64,10 @@ variables:
   storage_account_key_secret:
     description: Nombre del secreto del access key del storage account si aplica.
     default: sc-dlsbigdatatoledano-key
+
+  storage_account_url_secret:
+    description: Nombre del secreto opcional con la URL DFS del storage account.
+    default: sc-dlsbigdatatoledano-url
 
   bronze_container:
     description: Contenedor bronze.
@@ -81,12 +85,28 @@ variables:
     description: Ruta temporal usada para staging.
     default: bronze/temp
 
+  adf_databricks_workspace_secret:
+    description: Secret usado por ADF para resolver la URL del workspace Databricks.
+    default: sc-adbbigdatatoledano-workspace
+
+  adf_databricks_workspace_resource_id_secret:
+    description: Secret usado por ADF para resolver el resource id del workspace Databricks.
+    default: sc-adbbigdatatoledano-workspaces-resourceid
+
+  adf_databricks_token_secret:
+    description: Secret usado por ADF para autenticacion con Databricks si no usa MSI.
+    default: sc-adbbigdatatoledano-token
+
+  adf_databricks_cluster_secret:
+    description: Secret usado por ADF para el existingClusterId de Databricks.
+    default: sc-adbbigdatatoledano-cluster
+
   sql_control_server_secret:
     description: Nombre del secreto del servidor SQL de control.
     default: sc-sqlbigdatatoledano-server
 
   sql_control_server:
-    description: Valor opcional no sensible del servidor SQL de control si el Secret Scope no expone la key del ARM.
+    description: Valor opcional no sensible del servidor SQL de control. Si queda vacio, se lee sql_control_server_secret.
     default: ""
 
   sql_control_database_secret:
@@ -94,7 +114,7 @@ variables:
     default: sc-sqlbigdatatoledano-database
 
   sql_control_database:
-    description: Valor opcional no sensible de la base SQL de control si el Secret Scope no expone la key del ARM.
+    description: Valor opcional no sensible de la base SQL de control. Si queda vacio, se lee sql_control_database_secret.
     default: ""
 
   sql_control_username_secret:
@@ -206,24 +226,24 @@ variables:
     default: sc-sharepoint-tenant-id
 
   sharepoint_site_id_secret:
-    description: Nombre del secreto del site id para Graph SharePoint.
-    default: sc-sharepoint-site-id
+    description: Nombre opcional del secreto del site id para Graph SharePoint. Vacio porque no existe en el scope informado.
+    default: ""
 
   sharepoint_drive_id_secret:
-    description: Nombre del secreto del drive id para Graph SharePoint.
-    default: sc-sharepoint-drive-id
+    description: Nombre opcional del secreto del drive id para Graph SharePoint. Vacio porque no existe en el scope informado.
+    default: ""
 
   sharepoint_propietario_fuente:
     description: Valor de PropietarioFuente para SharePoint en GetControlCargas.
     default: DatosPortalDeInformacion
 
   notification_endpoint_secret:
-    description: Nombre del secreto del endpoint de notificacion.
-    default: sc-logicapp-notification-endpoint
+    description: Nombre opcional del secreto del endpoint de notificacion. Configurar cuando exista la key del endpoint.
+    default: ""
 
   notification_enabled:
-    description: Activa o desactiva notificaciones.
-    default: "true"
+    description: Activa o desactiva notificaciones HTTP. Debe ser true solo cuando notification_endpoint_secret exista.
+    default: "false"
 
   emails:
     description: Correos por defecto del modelo Priorizacion Stock.
@@ -250,15 +270,20 @@ targets:
       schema_sharepoint: sharepoint
       schema_atlas: atlas
       schema_audit: audit
-      secret_scope: kv-bigd-toledano-dev-01
+      secret_scope: secret-kv-toledano
       key_vault_url: https://kv-bigd-toledano-dev-01.vault.azure.net/
       storage_account_url: https://dlsbigdatatoledanodev.dfs.core.windows.net/
       storage_account_name: dlsbigdatatoledanodev
       storage_account_key_secret: sc-dlsbigdatatoledano-key
+      storage_account_url_secret: sc-dlsbigdatatoledano-url
       bronze_container: bronze
       silver_container: silver
       gold_container: gold
       staging_path: bronze/temp
+      adf_databricks_workspace_secret: sc-adbbigdatatoledano-workspace
+      adf_databricks_workspace_resource_id_secret: sc-adbbigdatatoledano-workspaces-resourceid
+      adf_databricks_token_secret: sc-adbbigdatatoledano-token
+      adf_databricks_cluster_secret: sc-adbbigdatatoledano-cluster
       sql_control_server_secret: sc-sqlbigdatatoledano-server
       sql_control_server: ""
       sql_control_database_secret: sc-sqlbigdatatoledano-database
@@ -290,11 +315,11 @@ targets:
       sharepoint_client_id_secret: sc-sharepoint-client-id
       sharepoint_client_secret_secret: sc-sharepoint-secret-id
       sharepoint_tenant_id_secret: sc-sharepoint-tenant-id
-      sharepoint_site_id_secret: sc-sharepoint-site-id
-      sharepoint_drive_id_secret: sc-sharepoint-drive-id
+      sharepoint_site_id_secret: ""
+      sharepoint_drive_id_secret: ""
       sharepoint_propietario_fuente: DatosPortalDeInformacion
-      notification_endpoint_secret: sc-logicapp-notification-endpoint
-      notification_enabled: "true"
+      notification_endpoint_secret: ""
+      notification_enabled: "false"
       emails: "jose.herrera@dataknow.co; ndpaze@pronaca.com; gaproanm@pronaca.com; mrpalacg@pronaca.com"
 
   test:
@@ -312,15 +337,20 @@ targets:
       schema_sharepoint: sharepoint
       schema_atlas: atlas
       schema_audit: audit
-      secret_scope: kv-bigd-toledano-dev-01
+      secret_scope: secret-kv-toledano
       key_vault_url: https://kv-bigd-toledano-dev-01.vault.azure.net/
       storage_account_url: https://dlsbigdatatoledanodev.dfs.core.windows.net/
       storage_account_name: dlsbigdatatoledanodev
       storage_account_key_secret: sc-dlsbigdatatoledano-key
+      storage_account_url_secret: sc-dlsbigdatatoledano-url
       bronze_container: bronze
       silver_container: silver
       gold_container: gold
       staging_path: bronze/temp
+      adf_databricks_workspace_secret: sc-adbbigdatatoledano-workspace
+      adf_databricks_workspace_resource_id_secret: sc-adbbigdatatoledano-workspaces-resourceid
+      adf_databricks_token_secret: sc-adbbigdatatoledano-token
+      adf_databricks_cluster_secret: sc-adbbigdatatoledano-cluster
       sql_control_server_secret: sc-sqlbigdatatoledano-server
       sql_control_server: ""
       sql_control_database_secret: sc-sqlbigdatatoledano-database
@@ -352,11 +382,11 @@ targets:
       sharepoint_client_id_secret: sc-sharepoint-client-id
       sharepoint_client_secret_secret: sc-sharepoint-secret-id
       sharepoint_tenant_id_secret: sc-sharepoint-tenant-id
-      sharepoint_site_id_secret: sc-sharepoint-site-id
-      sharepoint_drive_id_secret: sc-sharepoint-drive-id
+      sharepoint_site_id_secret: ""
+      sharepoint_drive_id_secret: ""
       sharepoint_propietario_fuente: DatosPortalDeInformacion
-      notification_endpoint_secret: sc-logicapp-notification-endpoint
-      notification_enabled: "true"
+      notification_endpoint_secret: ""
+      notification_enabled: "false"
       emails: "jose.herrera@dataknow.co; ndpaze@pronaca.com; gaproanm@pronaca.com; mrpalacg@pronaca.com"
 
   prod:
@@ -374,15 +404,20 @@ targets:
       schema_sharepoint: sharepoint
       schema_atlas: atlas
       schema_audit: audit
-      secret_scope: kv-bigd-toledano-dev-01
+      secret_scope: secret-kv-toledano
       key_vault_url: https://kv-bigd-toledano-dev-01.vault.azure.net/
       storage_account_url: https://dlsbigdatatoledanodev.dfs.core.windows.net/
       storage_account_name: dlsbigdatatoledanodev
       storage_account_key_secret: sc-dlsbigdatatoledano-key
+      storage_account_url_secret: sc-dlsbigdatatoledano-url
       bronze_container: bronze
       silver_container: silver
       gold_container: gold
       staging_path: bronze/temp
+      adf_databricks_workspace_secret: sc-adbbigdatatoledano-workspace
+      adf_databricks_workspace_resource_id_secret: sc-adbbigdatatoledano-workspaces-resourceid
+      adf_databricks_token_secret: sc-adbbigdatatoledano-token
+      adf_databricks_cluster_secret: sc-adbbigdatatoledano-cluster
       sql_control_server_secret: sc-sqlbigdatatoledano-server
       sql_control_server: ""
       sql_control_database_secret: sc-sqlbigdatatoledano-database
@@ -414,9 +449,9 @@ targets:
       sharepoint_client_id_secret: sc-sharepoint-client-id
       sharepoint_client_secret_secret: sc-sharepoint-secret-id
       sharepoint_tenant_id_secret: sc-sharepoint-tenant-id
-      sharepoint_site_id_secret: sc-sharepoint-site-id
-      sharepoint_drive_id_secret: sc-sharepoint-drive-id
+      sharepoint_site_id_secret: ""
+      sharepoint_drive_id_secret: ""
       sharepoint_propietario_fuente: DatosPortalDeInformacion
-      notification_endpoint_secret: sc-logicapp-notification-endpoint
-      notification_enabled: "true"
+      notification_endpoint_secret: ""
+      notification_enabled: "false"
       emails: "jose.herrera@dataknow.co; ndpaze@pronaca.com; gaproanm@pronaca.com; mrpalacg@pronaca.com"

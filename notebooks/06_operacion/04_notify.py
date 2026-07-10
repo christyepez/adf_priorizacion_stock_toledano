@@ -58,6 +58,7 @@ dbutils.widgets.text("subject", "Priorizacion Stock Toledano")
 dbutils.widgets.text("name", "Priorizacion Stock Toledano")
 dbutils.widgets.text("secret_scope", "")
 dbutils.widgets.text("notification_endpoint_secret", "")
+dbutils.widgets.text("notification_enabled", "false")
 dbutils.widgets.text("catalog_gold", "")
 dbutils.widgets.text("schema_atlas", "atlas")
 dbutils.widgets.text("audit_table", "")
@@ -85,6 +86,7 @@ subject = dbutils.widgets.get("subject").strip() or "Priorizacion Stock Toledano
 name = dbutils.widgets.get("name").strip() or "Priorizacion Stock Toledano"
 secret_scope = dbutils.widgets.get("secret_scope").strip()
 notification_endpoint_secret = dbutils.widgets.get("notification_endpoint_secret").strip()
+notification_enabled = dbutils.widgets.get("notification_enabled").strip().lower() == "true"
 catalog_gold = dbutils.widgets.get("catalog_gold").strip()
 schema_atlas = dbutils.widgets.get("schema_atlas").strip() or "atlas"
 audit_table_param = dbutils.widgets.get("audit_table").strip()
@@ -102,22 +104,28 @@ payload = build_notification_payload(
 )
 
 try:
-    endpoint = read_notification_endpoint(dbutils, secret_scope, notification_endpoint_secret)
-    result = send_notification(endpoint, payload)
-    if result.status != "success":
-        raise RuntimeError(result.error_message or f"HTTP status {result.status_code}")
+    if notification_enabled:
+        endpoint = read_notification_endpoint(dbutils, secret_scope, notification_endpoint_secret)
+        result = send_notification(endpoint, payload)
+        if result.status != "success":
+            raise RuntimeError(result.error_message or f"HTTP status {result.status_code}")
+        notification_result = result.as_dict()
+        event_message = f"Notificacion enviada: {subject}"
+    else:
+        notification_result = {"status": "disabled"}
+        event_message = "Notificacion omitida: notification_enabled=false"
     event = build_audit_event(
         ambiente=ambiente,
         process=process,
         run_id=run_id,
         status=status,
         name=name,
-        message=f"Notificacion enviada: {subject}",
+        message=event_message,
         task="notify",
         execution_id=execution_id,
     )
     append_audit_event(spark, event, audit_table)
-    print({"payload": payload, "notification": result.as_dict()})
+    print({"payload": payload, "notification": notification_result})
 except Exception as notify_error:
     warning_event = build_audit_event(
         ambiente=ambiente,
