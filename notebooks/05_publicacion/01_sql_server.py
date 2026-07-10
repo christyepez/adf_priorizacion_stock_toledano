@@ -47,19 +47,21 @@ def _add_project_src_to_path() -> None:
 
 _add_project_src_to_path()
 
-dbutils.widgets.text("ambiente", "dev")
-dbutils.widgets.text("catalog_gold", "")
-dbutils.widgets.text("schema_atlas", "atlas")
-dbutils.widgets.text("secret_scope", "")
-dbutils.widgets.text("sql_publication_server", "")
-dbutils.widgets.text("sql_publication_database", "")
-dbutils.widgets.text("sql_publication_username_secret", "")
-dbutils.widgets.text("sql_publication_password_secret", "")
-dbutils.widgets.text("sql_publication_encrypt", "true")
-dbutils.widgets.text("sql_publication_trust_server_certificate", "true")
-dbutils.widgets.text("modo_publicacion", "append")
-dbutils.widgets.text("target_schema", "dbo")
-dbutils.widgets.text("target_table", "Int_Prioriza_Clientes")
+from priorizacion_stock_toledano.config import define_text_widget
+
+define_text_widget(dbutils, "ambiente", "dev")
+define_text_widget(dbutils, "catalog_gold", "")
+define_text_widget(dbutils, "schema_atlas", "atlas")
+define_text_widget(dbutils, "secret_scope", "")
+define_text_widget(dbutils, "sql_publication_server", "")
+define_text_widget(dbutils, "sql_publication_database", "")
+define_text_widget(dbutils, "sql_publication_username_secret", "")
+define_text_widget(dbutils, "sql_publication_password_secret", "")
+define_text_widget(dbutils, "sql_publication_encrypt", "true")
+define_text_widget(dbutils, "sql_publication_trust_server_certificate", "true")
+define_text_widget(dbutils, "modo_publicacion", "append")
+define_text_widget(dbutils, "target_schema", "dbo")
+define_text_widget(dbutils, "target_table", "Int_Prioriza_Clientes")
 
 from priorizacion_stock_toledano.model.model_parameters import obtener_tablas
 from priorizacion_stock_toledano.publication.sql_publisher import (

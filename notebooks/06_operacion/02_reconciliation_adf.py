@@ -47,14 +47,16 @@ def _add_project_src_to_path() -> None:
 
 _add_project_src_to_path()
 
-dbutils.widgets.text("ambiente", "dev")
-dbutils.widgets.text("Proceso", "Modelo_Priorizacion_Stock")
-dbutils.widgets.text("execution_id", "")
-dbutils.widgets.text("catalog_gold", "")
-dbutils.widgets.text("schema_atlas", "atlas")
-dbutils.widgets.text("quality_table", "")
-dbutils.widgets.text("adf_comparison_table", "")
-dbutils.widgets.text("tolerance_pct", "0")
+from priorizacion_stock_toledano.config import define_text_widget
+
+define_text_widget(dbutils, "ambiente", "dev")
+define_text_widget(dbutils, "Proceso", "Modelo_Priorizacion_Stock")
+define_text_widget(dbutils, "execution_id", "")
+define_text_widget(dbutils, "catalog_gold", "")
+define_text_widget(dbutils, "schema_atlas", "atlas")
+define_text_widget(dbutils, "quality_table", "")
+define_text_widget(dbutils, "adf_comparison_table", "")
+define_text_widget(dbutils, "tolerance_pct", "0")
 
 from uuid import uuid4
 

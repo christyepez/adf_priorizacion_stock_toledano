@@ -47,14 +47,16 @@ def _add_project_src_to_path() -> None:
 
 _add_project_src_to_path()
 
-dbutils.widgets.text("ambiente", "dev")
-dbutils.widgets.text("Proceso", "Modelo_Priorizacion_Stock")
-dbutils.widgets.text("SistemaFuente", "all")
-dbutils.widgets.text("run_id", "")
-dbutils.widgets.text("execution_id", "")
-dbutils.widgets.text("catalog_gold", "")
-dbutils.widgets.text("schema_atlas", "atlas")
-dbutils.widgets.text("audit_table", "")
+from priorizacion_stock_toledano.config import define_text_widget
+
+define_text_widget(dbutils, "ambiente", "dev")
+define_text_widget(dbutils, "Proceso", "Modelo_Priorizacion_Stock")
+define_text_widget(dbutils, "SistemaFuente", "all")
+define_text_widget(dbutils, "run_id", "")
+define_text_widget(dbutils, "execution_id", "")
+define_text_widget(dbutils, "catalog_gold", "")
+define_text_widget(dbutils, "schema_atlas", "atlas")
+define_text_widget(dbutils, "audit_table", "")
 
 from priorizacion_stock_toledano.audit.audit_logger import (
     append_audit_event,

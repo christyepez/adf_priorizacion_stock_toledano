@@ -47,23 +47,25 @@ def _add_project_src_to_path() -> None:
 
 _add_project_src_to_path()
 
-dbutils.widgets.text("ambiente", "dev")
-dbutils.widgets.text("Proceso", "Modelo_Priorizacion_Stock")
-dbutils.widgets.text("SistemaFuente", "SapHana")
-dbutils.widgets.text("AñoMesDiaInicial", "0")
-dbutils.widgets.text("AñoMesDiaFinal", "0")
-dbutils.widgets.text("propietario_fuente", "")
-dbutils.widgets.text("secret_scope", "")
-dbutils.widgets.text("sql_control_server", "")
-dbutils.widgets.text("sql_control_database", "")
-dbutils.widgets.text("sql_control_server_secret", "")
-dbutils.widgets.text("sql_control_database_secret", "")
-dbutils.widgets.text("sql_control_username_secret", "")
-dbutils.widgets.text("sql_control_password_secret", "")
-dbutils.widgets.text("sql_control_encrypt", "true")
-dbutils.widgets.text("sql_control_trust_server_certificate", "false")
-dbutils.widgets.text("audit_delta_enabled", "false")
-dbutils.widgets.text("audit_delta_table", "")
+from priorizacion_stock_toledano.config import define_text_widget
+
+define_text_widget(dbutils, "ambiente", "dev")
+define_text_widget(dbutils, "Proceso", "Modelo_Priorizacion_Stock")
+define_text_widget(dbutils, "SistemaFuente", "SapHana")
+define_text_widget(dbutils, "AñoMesDiaInicial", "0")
+define_text_widget(dbutils, "AñoMesDiaFinal", "0")
+define_text_widget(dbutils, "propietario_fuente", "")
+define_text_widget(dbutils, "secret_scope", "")
+define_text_widget(dbutils, "sql_control_server", "")
+define_text_widget(dbutils, "sql_control_database", "")
+define_text_widget(dbutils, "sql_control_server_secret", "")
+define_text_widget(dbutils, "sql_control_database_secret", "")
+define_text_widget(dbutils, "sql_control_username_secret", "")
+define_text_widget(dbutils, "sql_control_password_secret", "")
+define_text_widget(dbutils, "sql_control_encrypt", "true")
+define_text_widget(dbutils, "sql_control_trust_server_certificate", "false")
+define_text_widget(dbutils, "audit_delta_enabled", "false")
+define_text_widget(dbutils, "audit_delta_table", "")
 
 from priorizacion_stock_toledano.control.get_control_cargas import (
     CONTROL_VIEW_NAME,

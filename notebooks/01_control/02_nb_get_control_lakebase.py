@@ -47,20 +47,22 @@ def _add_project_src_to_path() -> None:
 
 _add_project_src_to_path()
 
-dbutils.widgets.text("ambiente", "dev")
-dbutils.widgets.text("Proceso", "Modelo_Priorizacion_Stock")
-dbutils.widgets.text("SistemaFuente", "SapHana")
-dbutils.widgets.text("AñoMesDiaInicial", "0")
-dbutils.widgets.text("AñoMesDiaFinal", "0")
-dbutils.widgets.text("propietario_fuente", "")
-dbutils.widgets.text("secret_scope", "")
-dbutils.widgets.text("lakebase_host_secret", "")
-dbutils.widgets.text("lakebase_port_secret", "")
-dbutils.widgets.text("lakebase_database_secret", "")
-dbutils.widgets.text("lakebase_username_secret", "")
-dbutils.widgets.text("lakebase_password_secret", "")
-dbutils.widgets.text("audit_delta_enabled", "false")
-dbutils.widgets.text("audit_delta_table", "")
+from priorizacion_stock_toledano.config import define_text_widget
+
+define_text_widget(dbutils, "ambiente", "dev")
+define_text_widget(dbutils, "Proceso", "Modelo_Priorizacion_Stock")
+define_text_widget(dbutils, "SistemaFuente", "SapHana")
+define_text_widget(dbutils, "AñoMesDiaInicial", "0")
+define_text_widget(dbutils, "AñoMesDiaFinal", "0")
+define_text_widget(dbutils, "propietario_fuente", "")
+define_text_widget(dbutils, "secret_scope", "")
+define_text_widget(dbutils, "lakebase_host_secret", "")
+define_text_widget(dbutils, "lakebase_port_secret", "")
+define_text_widget(dbutils, "lakebase_database_secret", "")
+define_text_widget(dbutils, "lakebase_username_secret", "")
+define_text_widget(dbutils, "lakebase_password_secret", "")
+define_text_widget(dbutils, "audit_delta_enabled", "false")
+define_text_widget(dbutils, "audit_delta_table", "")
 
 from pyspark.sql.functions import col
 

@@ -47,22 +47,24 @@ def _add_project_src_to_path() -> None:
 
 _add_project_src_to_path()
 
-dbutils.widgets.text("ambiente", "dev")
-dbutils.widgets.text("Proceso", "Modelo_Priorizacion_Stock")
-dbutils.widgets.text("run_id", "")
-dbutils.widgets.text("execution_id", "")
-dbutils.widgets.text("status", "SUCCEEDED")
-dbutils.widgets.text("emails", "")
-dbutils.widgets.text("message", "Fin exitoso del proceso")
-dbutils.widgets.text("subject", "Priorizacion Stock Toledano")
-dbutils.widgets.text("name", "Priorizacion Stock Toledano")
-dbutils.widgets.text("secret_scope", "")
-dbutils.widgets.text("notification_endpoint_secret", "")
-dbutils.widgets.text("notification_enabled", "false")
-dbutils.widgets.text("catalog_gold", "")
-dbutils.widgets.text("schema_atlas", "atlas")
-dbutils.widgets.text("audit_table", "")
-dbutils.widgets.text("original_error", "")
+from priorizacion_stock_toledano.config import define_text_widget
+
+define_text_widget(dbutils, "ambiente", "dev")
+define_text_widget(dbutils, "Proceso", "Modelo_Priorizacion_Stock")
+define_text_widget(dbutils, "run_id", "")
+define_text_widget(dbutils, "execution_id", "")
+define_text_widget(dbutils, "status", "SUCCEEDED")
+define_text_widget(dbutils, "emails", "")
+define_text_widget(dbutils, "message", "Fin exitoso del proceso")
+define_text_widget(dbutils, "subject", "Priorizacion Stock Toledano")
+define_text_widget(dbutils, "name", "Priorizacion Stock Toledano")
+define_text_widget(dbutils, "secret_scope", "")
+define_text_widget(dbutils, "notification_endpoint_secret", "")
+define_text_widget(dbutils, "notification_enabled", "false")
+define_text_widget(dbutils, "catalog_gold", "")
+define_text_widget(dbutils, "schema_atlas", "atlas")
+define_text_widget(dbutils, "audit_table", "")
+define_text_widget(dbutils, "original_error", "")
 
 from priorizacion_stock_toledano.audit.audit_logger import (
     append_audit_event,
