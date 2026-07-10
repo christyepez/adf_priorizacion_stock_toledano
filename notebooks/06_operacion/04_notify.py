@@ -56,8 +56,8 @@ dbutils.widgets.text("emails", "")
 dbutils.widgets.text("message", "Fin exitoso del proceso")
 dbutils.widgets.text("subject", "Priorizacion Stock Toledano")
 dbutils.widgets.text("name", "Priorizacion Stock Toledano")
-dbutils.widgets.text("secret_scope", "")
-dbutils.widgets.text("notification_endpoint_secret", "")
+dbutils.widgets.text("secret_scope", "kv-bigd-toledano-dev-01")
+dbutils.widgets.text("notification_endpoint_secret", "sc-logicapp-notification-endpoint")
 dbutils.widgets.text("catalog_gold", "")
 dbutils.widgets.text("schema_atlas", "atlas")
 dbutils.widgets.text("audit_table", "")
@@ -83,8 +83,10 @@ emails = dbutils.widgets.get("emails").strip()
 message = dbutils.widgets.get("message").strip()
 subject = dbutils.widgets.get("subject").strip() or "Priorizacion Stock Toledano"
 name = dbutils.widgets.get("name").strip() or "Priorizacion Stock Toledano"
-secret_scope = dbutils.widgets.get("secret_scope").strip()
-notification_endpoint_secret = dbutils.widgets.get("notification_endpoint_secret").strip()
+secret_scope = dbutils.widgets.get("secret_scope").strip() or "kv-bigd-toledano-dev-01"
+notification_endpoint_secret = (
+    dbutils.widgets.get("notification_endpoint_secret").strip() or "sc-logicapp-notification-endpoint"
+)
 catalog_gold = dbutils.widgets.get("catalog_gold").strip()
 schema_atlas = dbutils.widgets.get("schema_atlas").strip() or "atlas"
 audit_table_param = dbutils.widgets.get("audit_table").strip()

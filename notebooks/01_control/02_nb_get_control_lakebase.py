@@ -53,12 +53,12 @@ dbutils.widgets.text("SistemaFuente", "SapHana")
 dbutils.widgets.text("AñoMesDiaInicial", "0")
 dbutils.widgets.text("AñoMesDiaFinal", "0")
 dbutils.widgets.text("propietario_fuente", "")
-dbutils.widgets.text("secret_scope", "")
-dbutils.widgets.text("lakebase_host_secret", "lakebase-host")
-dbutils.widgets.text("lakebase_port_secret", "lakebase-port")
-dbutils.widgets.text("lakebase_database_secret", "lakebase-database")
-dbutils.widgets.text("lakebase_username_secret", "lakebase-username")
-dbutils.widgets.text("lakebase_password_secret", "lakebase-password")
+dbutils.widgets.text("secret_scope", "kv-bigd-toledano-dev-01")
+dbutils.widgets.text("lakebase_host_secret", "sc-lakebase-host")
+dbutils.widgets.text("lakebase_port_secret", "sc-lakebase-port")
+dbutils.widgets.text("lakebase_database_secret", "sc-lakebase-database")
+dbutils.widgets.text("lakebase_username_secret", "sc-lakebase-username")
+dbutils.widgets.text("lakebase_password_secret", "sc-lakebase-password")
 dbutils.widgets.text("audit_delta_enabled", "false")
 dbutils.widgets.text("audit_delta_table", "")
 
@@ -80,7 +80,7 @@ sistema_fuente = dbutils.widgets.get("SistemaFuente")
 anio_mes_dia_inicial = dbutils.widgets.get("AñoMesDiaInicial")
 anio_mes_dia_final = dbutils.widgets.get("AñoMesDiaFinal")
 propietario_fuente = dbutils.widgets.get("propietario_fuente").strip() or None
-secret_scope = dbutils.widgets.get("secret_scope")
+secret_scope = dbutils.widgets.get("secret_scope").strip() or "kv-bigd-toledano-dev-01"
 audit_delta_enabled = dbutils.widgets.get("audit_delta_enabled").strip().lower() == "true"
 audit_delta_table = dbutils.widgets.get("audit_delta_table").strip()
 
@@ -96,11 +96,11 @@ secret_values = read_lakebase_secret_values(
     dbutils,
     secret_scope,
     LakebaseSecretNames(
-        host=dbutils.widgets.get("lakebase_host_secret"),
-        port=dbutils.widgets.get("lakebase_port_secret"),
-        database=dbutils.widgets.get("lakebase_database_secret"),
-        username=dbutils.widgets.get("lakebase_username_secret"),
-        password=dbutils.widgets.get("lakebase_password_secret"),
+        host=dbutils.widgets.get("lakebase_host_secret").strip() or "sc-lakebase-host",
+        port=dbutils.widgets.get("lakebase_port_secret").strip() or "sc-lakebase-port",
+        database=dbutils.widgets.get("lakebase_database_secret").strip() or "sc-lakebase-database",
+        username=dbutils.widgets.get("lakebase_username_secret").strip() or "sc-lakebase-username",
+        password=dbutils.widgets.get("lakebase_password_secret").strip() or "sc-lakebase-password",
     ),
 )
 

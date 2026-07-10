@@ -50,11 +50,11 @@ _add_project_src_to_path()
 dbutils.widgets.text("ambiente", "dev")
 dbutils.widgets.text("catalog_gold", "")
 dbutils.widgets.text("schema_atlas", "atlas")
-dbutils.widgets.text("secret_scope", "")
-dbutils.widgets.text("sql_publication_server", "")
-dbutils.widgets.text("sql_publication_database", "")
-dbutils.widgets.text("sql_publication_username_secret", "")
-dbutils.widgets.text("sql_publication_password_secret", "")
+dbutils.widgets.text("secret_scope", "kv-bigd-toledano-dev-01")
+dbutils.widgets.text("sql_publication_server", "PTSVR2003")
+dbutils.widgets.text("sql_publication_database", "ORC_SAP")
+dbutils.widgets.text("sql_publication_username_secret", "sc-sql-orcpanama-username")
+dbutils.widgets.text("sql_publication_password_secret", "sc-sql-orcpanama-password")
 dbutils.widgets.text("sql_publication_encrypt", "true")
 dbutils.widgets.text("sql_publication_trust_server_certificate", "true")
 dbutils.widgets.text("modo_publicacion", "append")
@@ -72,9 +72,9 @@ from priorizacion_stock_toledano.publication.sql_publisher import (
 ambiente = dbutils.widgets.get("ambiente").strip()
 catalog_gold = dbutils.widgets.get("catalog_gold").strip() or None
 schema_atlas = dbutils.widgets.get("schema_atlas").strip() or "atlas"
-secret_scope = dbutils.widgets.get("secret_scope").strip()
-sql_publication_server = dbutils.widgets.get("sql_publication_server").strip()
-sql_publication_database = dbutils.widgets.get("sql_publication_database").strip()
+secret_scope = dbutils.widgets.get("secret_scope").strip() or "kv-bigd-toledano-dev-01"
+sql_publication_server = dbutils.widgets.get("sql_publication_server").strip() or "PTSVR2003"
+sql_publication_database = dbutils.widgets.get("sql_publication_database").strip() or "ORC_SAP"
 sql_publication_encrypt = dbutils.widgets.get("sql_publication_encrypt").strip() or "true"
 sql_publication_trust_server_certificate = (
     dbutils.widgets.get("sql_publication_trust_server_certificate").strip() or "true"
@@ -87,8 +87,8 @@ if not ambiente:
     raise ValueError("El parametro 'ambiente' es requerido")
 
 secret_names = SqlPublicationSecretNames(
-    username=dbutils.widgets.get("sql_publication_username_secret").strip(),
-    password=dbutils.widgets.get("sql_publication_password_secret").strip(),
+    username=dbutils.widgets.get("sql_publication_username_secret").strip() or "sc-sql-orcpanama-username",
+    password=dbutils.widgets.get("sql_publication_password_secret").strip() or "sc-sql-orcpanama-password",
 )
 
 secret_values = read_sql_publication_secret_values(dbutils, secret_scope, secret_names)
