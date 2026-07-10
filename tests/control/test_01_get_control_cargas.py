@@ -6,6 +6,7 @@ from priorizacion_stock_toledano.control.get_control_cargas import (
     SqlSecretNames,
     build_get_control_cargas_query,
     filter_by_owner,
+    is_exec_statement,
     jdbc_url,
     normalize_control_records,
     read_sql_secret_values,
@@ -41,6 +42,18 @@ def test_build_get_control_cargas_query_uses_expected_procedure_and_parameters()
     assert "@AñoMesDiaFinal = 20260131" in query
     assert "@Proceso = N'Modelo_Priorizacion_Stock'" in query
     assert "@SistemaFuente = N'SapHana'" in query
+
+
+def test_get_control_cargas_query_is_detected_as_exec_statement():
+    query = build_get_control_cargas_query(
+        anio_mes_dia_inicial="0",
+        anio_mes_dia_final="0",
+        proceso="Modelo_Priorizacion_Stock",
+        sistema_fuente="SapHana",
+    )
+
+    assert is_exec_statement(query)
+    assert not is_exec_statement("SELECT * FROM conf.ControlCargas")
 
 
 def test_normalize_control_records_preserves_arm_compatibility():

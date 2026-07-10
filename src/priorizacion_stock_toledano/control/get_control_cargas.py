@@ -195,6 +195,75 @@ def read_sql_secret_values(dbutils: Any, secret_scope: str, secret_names: SqlSec
     }
 
 
+def is_exec_statement(query: str) -> bool:
+    return (query or "").lstrip().upper().startswith("EXEC ")
+
+
+def _spark_jvm(spark: Any) -> Any:
+    jvm = getattr(spark, "_jvm", None)
+    if jvm is not None:
+        return jvm
+    spark_context = getattr(spark, "sparkContext", None)
+    gateway = getattr(spark_context, "_gateway", None)
+    if gateway is not None:
+        return gateway.jvm
+    raise RuntimeError(
+        "No se encontro acceso al JVM de Spark para ejecutar stored procedures JDBC. "
+        "Ejecuta el notebook en un cluster Databricks compatible o expone GetControlCargas como vista/SELECT."
+    )
+
+
+def _read_exec_with_jdbc_driver(
+    spark: Any,
+    *,
+    url: str,
+    username: str,
+    password: str,
+    query: str,
+) -> Any:
+    from pyspark.sql.types import StringType, StructField, StructType
+
+    jvm = _spark_jvm(spark)
+    jvm.java.lang.Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver")
+
+    connection = None
+    statement = None
+    result_set = None
+    try:
+        connection = jvm.java.sql.DriverManager.getConnection(url, username, password)
+        statement = connection.createStatement()
+        has_result_set = statement.execute(query)
+        while not has_result_set and statement.getUpdateCount() != -1:
+            has_result_set = statement.getMoreResults()
+        if not has_result_set:
+            raise ValueError(f"El procedimiento {CONTROL_PROCEDURE} no devolvio un result set")
+
+        result_set = statement.getResultSet()
+        metadata = result_set.getMetaData()
+        column_count = metadata.getColumnCount()
+        columns = [
+            str(metadata.getColumnLabel(index) or metadata.getColumnName(index))
+            for index in range(1, column_count + 1)
+        ]
+        rows = []
+        while result_set.next():
+            row = {}
+            for index, column in enumerate(columns, start=1):
+                value = result_set.getString(index)
+                row[column] = None if value is None else str(value)
+            rows.append(row)
+
+        schema = StructType([StructField(column, StringType(), True) for column in columns])
+        return spark.createDataFrame(rows, schema=schema)
+    finally:
+        if result_set is not None:
+            result_set.close()
+        if statement is not None:
+            statement.close()
+        if connection is not None:
+            connection.close()
+
+
 def read_get_control_cargas_jdbc(
     spark: Any,
     *,
@@ -203,6 +272,15 @@ def read_get_control_cargas_jdbc(
     password: str,
     query: str,
 ) -> Any:
+    if is_exec_statement(query):
+        return _read_exec_with_jdbc_driver(
+            spark,
+            url=url,
+            username=username,
+            password=password,
+            query=query,
+        )
+
     return (
         spark.read.format("jdbc")
         .option("url", url)
@@ -215,7 +293,7 @@ def read_get_control_cargas_jdbc(
 
 
 def normalize_spark_dataframe(df: Any) -> Any:
-    from pyspark.sql.functions import col, lit
+    from pyspark.sql.functions import col, coalesce, lit, lower, trim, when
 
     selected = []
     source_columns = set(df.columns)
@@ -225,7 +303,23 @@ def normalize_spark_dataframe(df: Any) -> Any:
         ]
         source = next((candidate for candidate in candidates if candidate in source_columns), None)
         if source:
-            selected.append(col(source).alias(standard))
+            source_col = col(source)
+            if standard == "activo":
+                active_text = lower(trim(source_col.cast("string")))
+                selected.append(
+                    when(source_col.isNull(), lit(True))
+                    .otherwise(active_text.isin("1", "true", "t", "yes", "y", "si", "s", "activo", "active"))
+                    .alias(standard)
+                )
+            elif standard == "orden_ejecucion":
+                selected.append(coalesce(source_col.cast("int"), lit(0)).alias(standard))
+            else:
+                selected.append(source_col.alias(standard))
         else:
-            selected.append(lit(None).alias(standard))
+            if standard == "activo":
+                selected.append(lit(True).alias(standard))
+            elif standard == "orden_ejecucion":
+                selected.append(lit(0).alias(standard))
+            else:
+                selected.append(lit(None).alias(standard))
     return df.select(*selected)
