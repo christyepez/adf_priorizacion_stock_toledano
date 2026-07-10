@@ -24,7 +24,7 @@ Las pruebas se ubican en `tests/` y cubren:
 
 ## 3. Validaciones de calidad implementadas
 
-El notebook `notebooks/06_quality/nb_quality_checks.py` valida:
+El notebook `notebooks/06_quality/01_nb_quality_checks.py` valida:
 
 1. Existen datos en Bronze SAP.
 2. Existen datos en Bronze SharePoint.
@@ -64,7 +64,7 @@ contiene:
 
 ## 5. Reconciliacion ADF vs Databricks
 
-`notebooks/06_quality/nb_reconciliation_adf.py` compara conteos si se configura `adf_comparison_table`.
+`notebooks/06_quality/02_nb_reconciliation_adf.py` compara conteos si se configura `adf_comparison_table`.
 
 Comportamiento:
 
@@ -76,7 +76,7 @@ Comportamiento:
 
 ### Control
 
-- Ejecutar `nb_get_control_cargas.py` con `SistemaFuente=SapHana`.
+- Ejecutar `01_nb_get_control_cargas.py` con `SistemaFuente=SapHana`.
 - Validar que la vista temporal `vw_control_cargas_priorizacion_stock` tenga registros activos.
 - Repetir con `SistemaFuente=sharepoint`.
 

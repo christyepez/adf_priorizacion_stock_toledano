@@ -36,32 +36,32 @@ Este documento resume los componentes ADF migrados del modelo **Modelo Priorizac
 
 | Tipo ADF | Patron detectado | Implementacion Databricks |
 |---|---|---|
-| Lookup | `GetControlCargas`, `LK_ControlCargas` | `notebooks/01_control/nb_get_control_cargas.py` y `src/.../control/get_control_cargas.py` |
+| Lookup | `GetControlCargas`, `LK_ControlCargas` | `notebooks/01_control/01_nb_get_control_cargas.py` y `src/.../control/get_control_cargas.py` |
 | Filter | Filtrado por `PropietarioFuente` | Filtros PySpark sobre esquema normalizado |
 | ForEach | Iteracion por objetos de control | Iteracion secuencial en extractores SAP/SharePoint |
 | Copy | SAP HANA a Data Lake, SharePoint a Data Lake, Gold a SQL | Extractores Python y `sql_publisher.py` |
 | DatabricksNotebook | Transformaciones y modelo | Notebooks refactorizados en `notebooks/03_bronze_to_silver` y `notebooks/04_modelo` |
 | DatabricksJob | Ejecucion de modelo existente | Job bundle `job_modelo_creacion_indice_priorizacion` |
-| WebActivity | Notificaciones de error/exito | `notebooks/07_audit/nb_notify.py` |
+| WebActivity | Notificaciones de error/exito | `notebooks/07_audit/02_nb_notify.py` |
 
 ## 6. Notebooks Databricks invocados
 
 | Funcion | Notebook |
 |---|---|
-| Control SQL Server | `notebooks/01_control/nb_get_control_cargas.py` |
-| Control Lakebase futuro | `notebooks/01_control/nb_get_control_lakebase.py` |
-| Extraccion SAP HANA | `notebooks/02_extraccion/nb_ext_saphana_priorizacion_stock.py` |
-| Extraccion SharePoint | `notebooks/02_extraccion/nb_ext_sharepoint_priorizacion_stock.py` |
-| Bronze to Silver SAP ofertas | `notebooks/03_bronze_to_silver/sap/nb_bronze_to_silver_m_ofertas_doc_ventas.py` |
-| Bronze to Silver SAP pedidos | `notebooks/03_bronze_to_silver/sap/nb_bronze_to_silver_cv_lo_pedido.py` |
-| Bronze to Silver grupos | `notebooks/03_bronze_to_silver/sharepoint/nb_bronze_to_silver_grupos_priorizacion.py` |
-| Bronze to Silver previas | `notebooks/03_bronze_to_silver/sharepoint/nb_bronze_to_silver_priorizaciones_previas.py` |
-| Modelo indice | `notebooks/04_modelo/nb_creacion_indice_priorizacion.py` |
-| Calidad | `notebooks/06_quality/nb_quality_checks.py` |
-| Reconciliacion | `notebooks/06_quality/nb_reconciliation_adf.py` |
-| Publicacion SQL | `notebooks/05_publicacion/nb_publicar_resultados_sql.py` |
-| Auditoria inicio/fin | `notebooks/07_audit/nb_audit_start.py`, `nb_audit_finish.py` |
-| Notificacion | `notebooks/07_audit/nb_notify.py` |
+| Control SQL Server | `notebooks/01_control/01_nb_get_control_cargas.py` |
+| Control Lakebase futuro | `notebooks/01_control/02_nb_get_control_lakebase.py` |
+| Extraccion SAP HANA | `notebooks/02_extraccion/01_nb_ext_saphana_priorizacion_stock.py` |
+| Extraccion SharePoint | `notebooks/02_extraccion/02_nb_ext_sharepoint_priorizacion_stock.py` |
+| Bronze to Silver SAP ofertas | `notebooks/03_bronze_to_silver/sap/01_nb_bronze_to_silver_m_ofertas_doc_ventas.py` |
+| Bronze to Silver SAP pedidos | `notebooks/03_bronze_to_silver/sap/02_nb_bronze_to_silver_cv_lo_pedido.py` |
+| Bronze to Silver grupos | `notebooks/03_bronze_to_silver/sharepoint/01_nb_bronze_to_silver_grupos_priorizacion.py` |
+| Bronze to Silver previas | `notebooks/03_bronze_to_silver/sharepoint/02_nb_bronze_to_silver_priorizaciones_previas.py` |
+| Modelo indice | `notebooks/04_modelo/02_nb_creacion_indice_priorizacion.py` |
+| Calidad | `notebooks/06_quality/01_nb_quality_checks.py` |
+| Reconciliacion | `notebooks/06_quality/02_nb_reconciliation_adf.py` |
+| Publicacion SQL | `notebooks/05_publicacion/01_nb_publicar_resultados_sql.py` |
+| Auditoria inicio/fin | `notebooks/07_audit/01_nb_audit_start.py`, `notebooks/07_audit/03_nb_audit_finish.py` |
+| Notificacion | `notebooks/07_audit/02_nb_notify.py` |
 
 ## 7. Riesgos de seguridad mitigados
 

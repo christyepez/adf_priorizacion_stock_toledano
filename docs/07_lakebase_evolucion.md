@@ -12,7 +12,7 @@ Lakebase PostgreSQL se propone como reemplazo gradual de `conf.GetControlCargas`
 | `sql/lakebase/002_insert_priorizacion_stock_sample_data.sql` | Inserta configuracion ejemplo para Priorizacion de Stock |
 | `sql/lakebase/003_create_control_views.sql` | Crea vistas normalizadas y compatibles con ADF |
 | `src/priorizacion_stock_toledano/control/lakebase_control.py` | Lector JDBC Lakebase |
-| `notebooks/01_control/nb_get_control_lakebase.py` | Notebook Databricks equivalente a `GetControlCargas` |
+| `notebooks/01_control/02_nb_get_control_lakebase.py` | Notebook Databricks equivalente a `GetControlCargas` |
 
 ## 3. Modelo de datos Lakebase
 
@@ -85,7 +85,7 @@ Estrategia recomendada:
 
 1. Crear tablas Lakebase en ambiente `dev`.
 2. Poblar datos desde `GetControlCargas` productivo o desde una exportacion aprobada.
-3. Ejecutar `nb_get_control_lakebase.py` y comparar salida con `nb_get_control_cargas.py`.
+3. Ejecutar `02_nb_get_control_lakebase.py` y comparar salida con `01_nb_get_control_cargas.py`.
 4. Validar SAP HANA y SharePoint usando el control Lakebase en `dev`.
 5. Repetir en `test` con ejecuciones paralelas.
 6. Activar `modo_control=lakebase` para pipelines seleccionados.

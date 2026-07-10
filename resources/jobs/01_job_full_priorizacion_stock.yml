@@ -33,7 +33,7 @@ resources:
         - task_key: audit_start
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/07_audit/nb_audit_start.py
+            notebook_path: ../../notebooks/07_audit/01_nb_audit_start.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -50,7 +50,7 @@ resources:
             - task_key: audit_start
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/02_extraccion/nb_ext_saphana_priorizacion_stock.py
+            notebook_path: ../../notebooks/02_extraccion/01_nb_ext_saphana_priorizacion_stock.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -79,7 +79,7 @@ resources:
             - task_key: ext_saphana_priorizacion_stock
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/02_extraccion/nb_ext_sharepoint_priorizacion_stock.py
+            notebook_path: ../../notebooks/02_extraccion/02_nb_ext_sharepoint_priorizacion_stock.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -111,7 +111,7 @@ resources:
             - task_key: ext_sharepoint_priorizacion_stock
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/03_bronze_to_silver/sap/nb_bronze_to_silver_m_ofertas_doc_ventas.py
+            notebook_path: ../../notebooks/03_bronze_to_silver/sap/01_nb_bronze_to_silver_m_ofertas_doc_ventas.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -127,7 +127,7 @@ resources:
             - task_key: bronze_to_silver_sap
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/03_bronze_to_silver/sap/nb_bronze_to_silver_cv_lo_pedido.py
+            notebook_path: ../../notebooks/03_bronze_to_silver/sap/02_nb_bronze_to_silver_cv_lo_pedido.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -143,7 +143,7 @@ resources:
             - task_key: bronze_to_silver_sap_cv_lo_pedido
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/03_bronze_to_silver/sharepoint/nb_bronze_to_silver_grupos_priorizacion.py
+            notebook_path: ../../notebooks/03_bronze_to_silver/sharepoint/01_nb_bronze_to_silver_grupos_priorizacion.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -159,7 +159,7 @@ resources:
             - task_key: bronze_to_silver_sharepoint
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/03_bronze_to_silver/sharepoint/nb_bronze_to_silver_priorizaciones_previas.py
+            notebook_path: ../../notebooks/03_bronze_to_silver/sharepoint/02_nb_bronze_to_silver_priorizaciones_previas.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -175,7 +175,7 @@ resources:
             - task_key: bronze_to_silver_sharepoint_priorizaciones_previas
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/04_modelo/nb_creacion_indice_priorizacion.py
+            notebook_path: ../../notebooks/04_modelo/02_nb_creacion_indice_priorizacion.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -193,7 +193,7 @@ resources:
             - task_key: modelo_creacion_indice_priorizacion
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/06_quality/nb_quality_checks.py
+            notebook_path: ../../notebooks/06_quality/01_nb_quality_checks.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -210,7 +210,7 @@ resources:
             - task_key: quality_checks
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/06_quality/nb_reconciliation_adf.py
+            notebook_path: ../../notebooks/06_quality/02_nb_reconciliation_adf.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -227,7 +227,7 @@ resources:
             - task_key: reconciliation_adf
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/05_publicacion/nb_publicar_resultados_sql.py
+            notebook_path: ../../notebooks/05_publicacion/01_nb_publicar_resultados_sql.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -250,7 +250,7 @@ resources:
             - task_key: publicar_resultados_sql
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/07_audit/nb_notify.py
+            notebook_path: ../../notebooks/07_audit/02_nb_notify.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -271,7 +271,7 @@ resources:
             - task_key: notify_success
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/07_audit/nb_audit_finish.py
+            notebook_path: ../../notebooks/07_audit/03_nb_audit_finish.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"

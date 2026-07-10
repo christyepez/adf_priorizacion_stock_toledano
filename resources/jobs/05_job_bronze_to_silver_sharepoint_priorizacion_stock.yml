@@ -33,7 +33,7 @@ resources:
         - task_key: bronze_to_silver_grupos_priorizacion
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/03_bronze_to_silver/sharepoint/nb_bronze_to_silver_grupos_priorizacion.py
+            notebook_path: ../../notebooks/03_bronze_to_silver/sharepoint/01_nb_bronze_to_silver_grupos_priorizacion.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -50,7 +50,7 @@ resources:
             - task_key: bronze_to_silver_grupos_priorizacion
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/03_bronze_to_silver/sharepoint/nb_bronze_to_silver_priorizaciones_previas.py
+            notebook_path: ../../notebooks/03_bronze_to_silver/sharepoint/02_nb_bronze_to_silver_priorizaciones_previas.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
