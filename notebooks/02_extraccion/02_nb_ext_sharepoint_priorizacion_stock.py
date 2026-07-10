@@ -54,22 +54,22 @@ dbutils.widgets.text("AñoMesDiaInicial", "0")
 dbutils.widgets.text("AñoMesDiaFinal", "0")
 dbutils.widgets.text("execution_id", "")
 dbutils.widgets.text("fail_fast", "true")
-dbutils.widgets.text("secret_scope", "")
-dbutils.widgets.text("storage_account_name", "")
-dbutils.widgets.text("sql_control_server_secret", "sql-control-server")
-dbutils.widgets.text("sql_control_database_secret", "sql-control-database")
-dbutils.widgets.text("sql_control_username_secret", "sql-control-username")
-dbutils.widgets.text("sql_control_password_secret", "sql-control-password")
+dbutils.widgets.text("secret_scope", "kv-bigd-toledano-dev-01")
+dbutils.widgets.text("storage_account_name", "dlsbigdatatoledanodev")
+dbutils.widgets.text("sql_control_server_secret", "sc-sqlbigdatatoledano-server")
+dbutils.widgets.text("sql_control_database_secret", "sc-sqlbigdatatoledano-database")
+dbutils.widgets.text("sql_control_username_secret", "sc-sqlbigdatatoledano-username")
+dbutils.widgets.text("sql_control_password_secret", "sc-sqlbigdatatoledano-password")
 dbutils.widgets.text("sql_control_encrypt", "true")
 dbutils.widgets.text("sql_control_trust_server_certificate", "false")
-dbutils.widgets.text("sharepoint_base_url", "")
+dbutils.widgets.text("sharepoint_base_url", "https://pronaca365.sharepoint.com/")
 dbutils.widgets.text("sharepoint_auth_mode", "graph_client_credentials")
 dbutils.widgets.text("sharepoint_token_secret", "")
-dbutils.widgets.text("sharepoint_client_id_secret", "sharepoint-client-id")
-dbutils.widgets.text("sharepoint_client_secret_secret", "sharepoint-client-secret")
-dbutils.widgets.text("sharepoint_tenant_id_secret", "sharepoint-tenant-id")
-dbutils.widgets.text("sharepoint_site_id_secret", "")
-dbutils.widgets.text("sharepoint_drive_id_secret", "")
+dbutils.widgets.text("sharepoint_client_id_secret", "sc-sharepoint-client-id")
+dbutils.widgets.text("sharepoint_client_secret_secret", "sc-sharepoint-secret-id")
+dbutils.widgets.text("sharepoint_tenant_id_secret", "sc-sharepoint-tenant-id")
+dbutils.widgets.text("sharepoint_site_id_secret", "sc-sharepoint-site-id")
+dbutils.widgets.text("sharepoint_drive_id_secret", "sc-sharepoint-drive-id")
 dbutils.widgets.text("sharepoint_propietario_fuente", "DatosPortalDeInformacion")
 dbutils.widgets.text("metrics_delta_table", "")
 
@@ -109,26 +109,44 @@ anio_mes_dia_inicial = dbutils.widgets.get("AñoMesDiaInicial")
 anio_mes_dia_final = dbutils.widgets.get("AñoMesDiaFinal")
 execution_id = dbutils.widgets.get("execution_id").strip() or str(uuid4())
 fail_fast = dbutils.widgets.get("fail_fast").strip().lower() == "true"
-secret_scope = dbutils.widgets.get("secret_scope")
-storage_account_name = dbutils.widgets.get("storage_account_name")
+secret_scope = dbutils.widgets.get("secret_scope").strip() or "kv-bigd-toledano-dev-01"
+storage_account_name = dbutils.widgets.get("storage_account_name").strip() or "dlsbigdatatoledanodev"
 sql_control_encrypt = dbutils.widgets.get("sql_control_encrypt").strip() or "true"
 sql_control_trust_server_certificate = (
     dbutils.widgets.get("sql_control_trust_server_certificate").strip() or "false"
 )
-sharepoint_base_url = dbutils.widgets.get("sharepoint_base_url").strip()
+sharepoint_base_url = dbutils.widgets.get("sharepoint_base_url").strip() or "https://pronaca365.sharepoint.com/"
 sharepoint_propietario_fuente = (
     dbutils.widgets.get("sharepoint_propietario_fuente").strip() or "DatosPortalDeInformacion"
 )
 metrics_delta_table = dbutils.widgets.get("metrics_delta_table").strip()
 
+if not secret_scope.strip():
+    raise ValueError(
+        "secret_scope es obligatorio. Ejecuta el notebook desde el Databricks Job/Bundle "
+        "o configura el widget secret_scope con el scope respaldado por Key Vault."
+    )
+
+if not storage_account_name.strip():
+    raise ValueError(
+        "storage_account_name es obligatorio. Ejecuta el notebook desde el Databricks Job/Bundle "
+        "o configura el widget storage_account_name."
+    )
+
+if not sharepoint_base_url:
+    raise ValueError(
+        "sharepoint_base_url es obligatorio. Ejecuta el notebook desde el Databricks Job/Bundle "
+        "o configura una URL base publica sin firmas ni tokens."
+    )
+
 control_secrets = read_sql_secret_values(
     dbutils,
     secret_scope,
     SqlSecretNames(
-        server=dbutils.widgets.get("sql_control_server_secret"),
-        database=dbutils.widgets.get("sql_control_database_secret"),
-        username=dbutils.widgets.get("sql_control_username_secret"),
-        password=dbutils.widgets.get("sql_control_password_secret"),
+        server=dbutils.widgets.get("sql_control_server_secret").strip() or "sc-sqlbigdatatoledano-server",
+        database=dbutils.widgets.get("sql_control_database_secret").strip() or "sc-sqlbigdatatoledano-database",
+        username=dbutils.widgets.get("sql_control_username_secret").strip() or "sc-sqlbigdatatoledano-username",
+        password=dbutils.widgets.get("sql_control_password_secret").strip() or "sc-sqlbigdatatoledano-password",
     ),
 )
 
@@ -170,9 +188,9 @@ sp_secret_values = read_sharepoint_secret_values(
     secret_scope,
     SharePointSecretNames(
         token=dbutils.widgets.get("sharepoint_token_secret").strip() or None,
-        client_id=dbutils.widgets.get("sharepoint_client_id_secret").strip() or None,
-        client_secret=dbutils.widgets.get("sharepoint_client_secret_secret").strip() or None,
-        tenant_id=dbutils.widgets.get("sharepoint_tenant_id_secret").strip() or None,
+        client_id=dbutils.widgets.get("sharepoint_client_id_secret").strip() or "sc-sharepoint-client-id",
+        client_secret=dbutils.widgets.get("sharepoint_client_secret_secret").strip() or "sc-sharepoint-secret-id",
+        tenant_id=dbutils.widgets.get("sharepoint_tenant_id_secret").strip() or "sc-sharepoint-tenant-id",
     ),
 )
 
