@@ -24,6 +24,8 @@ Los jobs en `resources/jobs/` definen la orquestacion ejecutable del modelo. El 
 
 Los notebooks en `notebooks/` actuan como orquestadores de cada etapa. La logica reutilizable se implementa en `src/priorizacion_stock_toledano` para facilitar pruebas, mantenimiento y futuras migraciones.
 
+Cada notebook que importa el paquete del proyecto incluye una celda bootstrap antes de los imports. Esa celda agrega `src/` al `sys.path` cuando el notebook se ejecuta como Workspace File o desde Databricks Asset Bundles, evitando errores `ModuleNotFoundError: priorizacion_stock_toledano` en jobs SAP, SharePoint, calidad, modelo, auditoria y publicacion.
+
 ### src
 
 El paquete `src/priorizacion_stock_toledano/` contiene modulos especializados:

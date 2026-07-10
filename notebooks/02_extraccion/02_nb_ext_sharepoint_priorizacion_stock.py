@@ -6,6 +6,47 @@
 # MAGIC Priorizacion de Stock Toledano.
 
 # COMMAND ----------
+# Bootstrap del paquete del proyecto para ejecuciones como Workspace Files o Bundle.
+import sys
+from pathlib import Path
+
+
+def _add_project_src_to_path() -> None:
+    candidates = []
+    cwd = Path.cwd()
+    candidates.extend([
+        cwd / "src",
+        cwd.parent / "src",
+        cwd.parent.parent / "src",
+        cwd.parent.parent.parent / "src",
+    ])
+    try:
+        notebook_path = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get()
+        workspace_file = Path("/Workspace") / notebook_path.lstrip("/")
+        candidates.extend([
+            workspace_file.parent / "src",
+            workspace_file.parent.parent / "src",
+            workspace_file.parent.parent.parent / "src",
+            workspace_file.parent.parent.parent.parent / "src",
+        ])
+    except Exception:
+        pass
+
+    for candidate in candidates:
+        if (candidate / "priorizacion_stock_toledano").exists():
+            candidate_str = str(candidate)
+            if candidate_str not in sys.path:
+                sys.path.insert(0, candidate_str)
+            return
+
+    raise ModuleNotFoundError(
+        "No se encontro src/priorizacion_stock_toledano. "
+        "Despliega el bundle completo o instala el paquete wheel en el job cluster."
+    )
+
+
+_add_project_src_to_path()
+
 dbutils.widgets.text("ambiente", "dev")
 dbutils.widgets.text("Proceso", "Modelo_Priorizacion_Stock")
 dbutils.widgets.text("SistemaFuente", "sharepoint")
