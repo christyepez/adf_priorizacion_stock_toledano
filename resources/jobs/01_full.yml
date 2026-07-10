@@ -33,7 +33,7 @@ resources:
         - task_key: audit_start
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/07_audit/01_nb_audit_start.py
+            notebook_path: ../../notebooks/06_operacion/03_audit_start.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -111,8 +111,9 @@ resources:
             - task_key: ext_sharepoint_priorizacion_stock
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/03_bronze_to_silver/sap/01_nb_bronze_to_silver_m_ofertas_doc_ventas.py
+            notebook_path: ../../notebooks/03_transformacion/01_sap.py
             base_parameters:
+              tabla: fact_cv_m_ofertas_doc_ventas
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
               SistemaFuente: SapHana
@@ -127,8 +128,9 @@ resources:
             - task_key: bronze_to_silver_sap
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/03_bronze_to_silver/sap/02_nb_bronze_to_silver_cv_lo_pedido.py
+            notebook_path: ../../notebooks/03_transformacion/01_sap.py
             base_parameters:
+              tabla: fact_cv_lo_pedido
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
               SistemaFuente: SapHana
@@ -143,8 +145,9 @@ resources:
             - task_key: bronze_to_silver_sap_cv_lo_pedido
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/03_bronze_to_silver/sharepoint/01_nb_bronze_to_silver_grupos_priorizacion.py
+            notebook_path: ../../notebooks/03_transformacion/02_sharepoint.py
             base_parameters:
+              tabla: grupos_priorizacion
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
               SistemaFuente: sharepoint
@@ -159,8 +162,9 @@ resources:
             - task_key: bronze_to_silver_sharepoint
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/03_bronze_to_silver/sharepoint/02_nb_bronze_to_silver_priorizaciones_previas.py
+            notebook_path: ../../notebooks/03_transformacion/02_sharepoint.py
             base_parameters:
+              tabla: priorizaciones_previas
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
               SistemaFuente: sharepoint
@@ -193,7 +197,7 @@ resources:
             - task_key: modelo_creacion_indice_priorizacion
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/06_quality/01_nb_quality_checks.py
+            notebook_path: ../../notebooks/06_operacion/01_quality_checks.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -210,7 +214,7 @@ resources:
             - task_key: quality_checks
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/06_quality/02_nb_reconciliation_adf.py
+            notebook_path: ../../notebooks/06_operacion/02_reconciliation_adf.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -227,7 +231,7 @@ resources:
             - task_key: reconciliation_adf
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/05_publicacion/01_nb_publicar_resultados_sql.py
+            notebook_path: ../../notebooks/05_publicacion/01_sql_server.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -250,7 +254,7 @@ resources:
             - task_key: publicar_resultados_sql
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/07_audit/02_nb_notify.py
+            notebook_path: ../../notebooks/06_operacion/04_notify.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -271,7 +275,7 @@ resources:
             - task_key: notify_success
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/07_audit/03_nb_audit_finish.py
+            notebook_path: ../../notebooks/06_operacion/05_audit_finish.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"

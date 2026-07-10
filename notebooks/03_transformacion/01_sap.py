@@ -1,7 +1,7 @@
 # Databricks notebook source
 # COMMAND ----------
 # MAGIC %md
-# MAGIC # Transformacion Bronze To Silver - Bronze To Silver Grupos Priorizacion
+# MAGIC # Transformacion Bronze To Silver - SAP
 # MAGIC
 # MAGIC Priorizacion de Stock Toledano.
 
@@ -48,31 +48,52 @@ def _add_project_src_to_path() -> None:
 _add_project_src_to_path()
 
 dbutils.widgets.text("ambiente", "dev")
+dbutils.widgets.text("tabla", "fact_cv_m_ofertas_doc_ventas")
 dbutils.widgets.text("catalog_bronze", "")
 dbutils.widgets.text("catalog_silver", "")
-dbutils.widgets.text("schema_sharepoint", "sharepoint")
+dbutils.widgets.text("schema_sap", "sap")
 dbutils.widgets.text("storage_account_name", "")
 dbutils.widgets.text("execution_id", "")
 
 from uuid import uuid4
 
-from priorizacion_stock_toledano.transformations.sharepoint_bronze_to_silver import transform_grupos_priorizacion
-from priorizacion_stock_toledano.transformations.sap_bronze_to_silver import silver_table_path
+from priorizacion_stock_toledano.transformations.sap_bronze_to_silver import (
+    silver_table_path,
+    transform_cv_lo_pedido,
+    transform_m_ofertas_doc_ventas,
+)
+
+TRANSFORMACIONES = {
+    "fact_cv_m_ofertas_doc_ventas": {
+        "relative_path": "sap/fact_cv_m_ofertas_doc_ventas",
+        "transform": transform_m_ofertas_doc_ventas,
+    },
+    "fact_cv_lo_pedido": {
+        "relative_path": "sap/fact_cv_lo_pedido",
+        "transform": transform_cv_lo_pedido,
+    },
+}
 
 ambiente = dbutils.widgets.get("ambiente")
+tabla = dbutils.widgets.get("tabla").strip()
 catalog_bronze = dbutils.widgets.get("catalog_bronze") or f"toledano_bronze_{ambiente}"
 catalog_silver = dbutils.widgets.get("catalog_silver") or f"toledano_silver_{ambiente}"
-schema_sharepoint = dbutils.widgets.get("schema_sharepoint") or "sharepoint"
+schema_sap = dbutils.widgets.get("schema_sap") or "sap"
 storage_account_name = dbutils.widgets.get("storage_account_name")
 execution_id = dbutils.widgets.get("execution_id").strip() or str(uuid4())
 
-source_table = f"{catalog_bronze}.{schema_sharepoint}.grupos_priorizacion"
-target_table = f"{catalog_silver}.{schema_sharepoint}.grupos_priorizacion"
-target_path = silver_table_path(storage_account_name, "sharepoint/datos_portal_de_informacion/grupos_priorizacion")
+if tabla not in TRANSFORMACIONES:
+    permitidas = ", ".join(sorted(TRANSFORMACIONES))
+    raise ValueError(f"Tabla SAP no soportada: {tabla}. Valores permitidos: {permitidas}")
+
+config = TRANSFORMACIONES[tabla]
+source_table = f"{catalog_bronze}.{schema_sap}.{tabla}"
+target_table = f"{catalog_silver}.{schema_sap}.{tabla}"
+target_path = silver_table_path(storage_account_name, config["relative_path"])
 
 df_source = spark.read.table(source_table)
 rows_read = df_source.count()
-df_target = transform_grupos_priorizacion(df_source, execution_id)
+df_target = config["transform"](df_source, execution_id)
 
 if not spark.catalog.tableExists(target_table):
     df_target.limit(0).write.format("delta").mode("overwrite").option("overwriteSchema", "true").saveAsTable(

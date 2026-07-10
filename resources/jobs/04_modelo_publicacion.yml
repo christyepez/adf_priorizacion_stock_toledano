@@ -51,7 +51,7 @@ resources:
             - task_key: modelo_creacion_indice_priorizacion
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/05_publicacion/01_nb_publicar_resultados_sql.py
+            notebook_path: ../../notebooks/05_publicacion/01_sql_server.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"
@@ -73,7 +73,7 @@ resources:
             - task_key: publicar_resultados_sql
           job_cluster_key: ${var.job_cluster_key}
           notebook_task:
-            notebook_path: ../../notebooks/07_audit/02_nb_notify.py
+            notebook_path: ../../notebooks/06_operacion/04_notify.py
             base_parameters:
               ambiente: "{{job.parameters.ambiente}}"
               Proceso: "{{job.parameters.Proceso}}"

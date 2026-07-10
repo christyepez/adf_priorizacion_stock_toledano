@@ -68,16 +68,14 @@ flowchart LR
 
 ### 6.1 `resources/jobs`
 
-Contiene la definicion declarativa de los Databricks Jobs administrados por el bundle. Cada YAML representa un flujo ejecutable y parametrizable por ambiente. El job principal, `job_full_priorizacion_stock`, reemplaza la orquestacion ADF end to end y ejecuta las tareas en el orden operativo definido.
+Contiene la definicion declarativa de los Databricks Jobs administrados por el bundle. La segunda pasada compacta los jobs en archivos por frente operativo para reducir duplicacion sin perder la separacion logica de tareas. El job principal, `job_full_priorizacion_stock`, reemplaza la orquestacion ADF end to end y ejecuta las tareas en el orden operativo definido.
 
 Jobs incluidos:
 
-- `01_job_full_priorizacion_stock.yml`
-- `02_job_ext_saphana_priorizacion_stock.yml`
-- `03_job_ext_sharepoint_priorizacion_stock.yml`
-- `04_job_bronze_to_silver_sap_priorizacion_stock.yml`
-- `05_job_bronze_to_silver_sharepoint_priorizacion_stock.yml`
-- `06_job_modelo_creacion_indice_priorizacion.yml`
+- `01_full.yml`
+- `02_extracciones.yml`
+- `03_transformaciones.yml`
+- `04_modelo_publicacion.yml`
 
 ### 6.2 `notebooks`
 
@@ -85,14 +83,12 @@ Los notebooks son puntos de entrada operativos para Databricks Jobs. Cada notebo
 
 Organizacion por etapa:
 
-- `00_setup`: validaciones iniciales de configuracion.
 - `01_control`: lectura de control de cargas desde SQL Server o Lakebase.
 - `02_extraccion`: extracciones SAP HANA y SharePoint.
-- `03_bronze_to_silver`: transformaciones refactorizadas desde notebooks originales.
+- `03_transformacion`: transformaciones refactorizadas desde notebooks originales.
 - `04_modelo`: parametrizacion y ejecucion del modelo de indice.
 - `05_publicacion`: publicacion del resultado Gold hacia SQL Server.
-- `06_quality`: reglas de calidad y reconciliacion ADF vs Databricks.
-- `07_audit`: auditoria y notificaciones.
+- `06_operacion`: calidad, reconciliacion ADF vs Databricks, auditoria y notificaciones.
 
 ### 6.3 `src/priorizacion_stock_toledano`
 
@@ -136,7 +132,7 @@ Coberturas relevantes:
 
 ### 6.6 `docs`
 
-Contiene la documentacion tecnica lista para revision, operacion y transferencia. Incluye arquitectura, estrategia de implementacion, mapa ADF, matriz ADF a Databricks, runbook operativo, pruebas y evolucion Lakebase.
+Contiene la documentacion tecnica lista para revision, operacion y transferencia. Incluye arquitectura, runbook operativo, matriz ADF a Databricks y evolucion Lakebase.
 
 ## 7. Seguridad
 

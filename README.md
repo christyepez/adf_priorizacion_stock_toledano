@@ -7,8 +7,8 @@ Databricks Asset Bundle base para migrar y operar el modelo de Priorizacion de S
 | Ruta | Descripcion |
 |---|---|
 | `databricks.yml` | Definicion principal del Databricks Asset Bundle, variables y targets por ambiente. |
-| `resources/jobs/` | YAML de Databricks Jobs que reemplazan los pipelines ADF. |
-| `notebooks/` | Notebooks orquestadores por etapa: control, extraccion, Bronze to Silver, modelo, calidad, publicacion y auditoria. |
+| `resources/jobs/` | YAML de Databricks Jobs agrupados por flujo operativo. |
+| `notebooks/` | Notebooks orquestadores por seccion: control, extraccion, transformacion, modelo, publicacion y operacion. |
 | `src/priorizacion_stock_toledano/` | Codigo Python reutilizable para que los notebooks no concentren logica funcional. |
 | `sql/` | Scripts SQL de soporte, incluyendo el modelo futuro Lakebase PostgreSQL. |
 | `tests/` | Pruebas unitarias con mocks para funciones criticas de control, extraccion, transformacion, modelo, calidad y publicacion. |
@@ -18,7 +18,7 @@ Databricks Asset Bundle base para migrar y operar el modelo de Priorizacion de S
 
 ### Jobs
 
-Los jobs en `resources/jobs/` definen la orquestacion ejecutable del modelo. El job principal es `job_full_priorizacion_stock`, que coordina auditoria, extracciones, transformaciones, modelo, calidad, reconciliacion, publicacion SQL y notificacion.
+Los jobs en `resources/jobs/` definen la orquestacion ejecutable del modelo en cuatro archivos compactos: full, extracciones, transformaciones y modelo/publicacion. El job principal es `job_full_priorizacion_stock`, que coordina auditoria, extracciones, transformaciones, modelo, calidad, reconciliacion, publicacion SQL y notificacion.
 
 ### Notebooks
 
@@ -70,5 +70,5 @@ La configuracion del bundle queda alineada con el ARM de ADF: `secret_scope` apu
 ```bash
 databricks bundle validate -t dev
 databricks bundle deploy -t dev
-databricks bundle run priorizacion_stock_toledano -t dev
+databricks bundle run job_full_priorizacion_stock -t dev
 ```

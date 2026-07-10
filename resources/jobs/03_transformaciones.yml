@@ -1,0 +1,129 @@
+resources:
+  jobs:
+    job_bronze_to_silver_sap_priorizacion_stock:
+      name: ${bundle.target}_bronze_to_silver_sap_priorizacion_stock
+      tags:
+        proyecto: priorizacion-stock-toledano
+        pipeline_adf_origen: 0_bronze_to_silver_sap_modelo_priorizacion_stock
+        sistema_fuente: SapHana
+      job_clusters:
+        - job_cluster_key: ${var.job_cluster_key}
+          new_cluster:
+            spark_version: 15.4.x-scala2.12
+            node_type_id: Standard_DS3_v2
+            num_workers: 2
+      parameters:
+        - name: ambiente
+          default: ${var.ambiente}
+        - name: Proceso
+          default: Modelo_Priorizacion_Stock
+        - name: SistemaFuente
+          default: SapHana
+        - name: AñoMesDiaInicial
+          default: "0"
+        - name: AñoMesDiaFinal
+          default: "0"
+        - name: modo_control
+          default: get_control_cargas
+        - name: modo_ejecucion
+          default: normal
+        - name: emails
+          default: ""
+      tasks:
+        - task_key: bronze_to_silver_m_ofertas_doc_ventas
+          job_cluster_key: ${var.job_cluster_key}
+          notebook_task:
+            notebook_path: ../../notebooks/03_transformacion/01_sap.py
+            base_parameters:
+              tabla: fact_cv_m_ofertas_doc_ventas
+              ambiente: "{{job.parameters.ambiente}}"
+              Proceso: "{{job.parameters.Proceso}}"
+              SistemaFuente: "{{job.parameters.SistemaFuente}}"
+              modo_control: "{{job.parameters.modo_control}}"
+              modo_ejecucion: "{{job.parameters.modo_ejecucion}}"
+              catalog_bronze: ${var.catalog_bronze}
+              catalog_silver: ${var.catalog_silver}
+              schema_sap: ${var.schema_sap}
+              storage_account_name: ${var.storage_account_name}
+
+        - task_key: bronze_to_silver_cv_lo_pedido
+          depends_on:
+            - task_key: bronze_to_silver_m_ofertas_doc_ventas
+          job_cluster_key: ${var.job_cluster_key}
+          notebook_task:
+            notebook_path: ../../notebooks/03_transformacion/01_sap.py
+            base_parameters:
+              tabla: fact_cv_lo_pedido
+              ambiente: "{{job.parameters.ambiente}}"
+              Proceso: "{{job.parameters.Proceso}}"
+              SistemaFuente: "{{job.parameters.SistemaFuente}}"
+              modo_control: "{{job.parameters.modo_control}}"
+              modo_ejecucion: "{{job.parameters.modo_ejecucion}}"
+              catalog_bronze: ${var.catalog_bronze}
+              catalog_silver: ${var.catalog_silver}
+              schema_sap: ${var.schema_sap}
+              storage_account_name: ${var.storage_account_name}
+
+    job_bronze_to_silver_sharepoint_priorizacion_stock:
+      name: ${bundle.target}_bronze_to_silver_sharepoint_priorizacion_stock
+      tags:
+        proyecto: priorizacion-stock-toledano
+        pipeline_adf_origen: 0_bronze_to_silver_sharepoint_modelo_priorizacion_stock
+        sistema_fuente: sharepoint
+      job_clusters:
+        - job_cluster_key: ${var.job_cluster_key}
+          new_cluster:
+            spark_version: 15.4.x-scala2.12
+            node_type_id: Standard_DS3_v2
+            num_workers: 2
+      parameters:
+        - name: ambiente
+          default: ${var.ambiente}
+        - name: Proceso
+          default: Modelo_Priorizacion_Stock
+        - name: SistemaFuente
+          default: sharepoint
+        - name: AñoMesDiaInicial
+          default: "0"
+        - name: AñoMesDiaFinal
+          default: "0"
+        - name: modo_control
+          default: get_control_cargas
+        - name: modo_ejecucion
+          default: normal
+        - name: emails
+          default: ""
+      tasks:
+        - task_key: bronze_to_silver_grupos_priorizacion
+          job_cluster_key: ${var.job_cluster_key}
+          notebook_task:
+            notebook_path: ../../notebooks/03_transformacion/02_sharepoint.py
+            base_parameters:
+              tabla: grupos_priorizacion
+              ambiente: "{{job.parameters.ambiente}}"
+              Proceso: "{{job.parameters.Proceso}}"
+              SistemaFuente: "{{job.parameters.SistemaFuente}}"
+              modo_control: "{{job.parameters.modo_control}}"
+              modo_ejecucion: "{{job.parameters.modo_ejecucion}}"
+              catalog_bronze: ${var.catalog_bronze}
+              catalog_silver: ${var.catalog_silver}
+              schema_sharepoint: ${var.schema_sharepoint}
+              storage_account_name: ${var.storage_account_name}
+
+        - task_key: bronze_to_silver_priorizaciones_previas
+          depends_on:
+            - task_key: bronze_to_silver_grupos_priorizacion
+          job_cluster_key: ${var.job_cluster_key}
+          notebook_task:
+            notebook_path: ../../notebooks/03_transformacion/02_sharepoint.py
+            base_parameters:
+              tabla: priorizaciones_previas
+              ambiente: "{{job.parameters.ambiente}}"
+              Proceso: "{{job.parameters.Proceso}}"
+              SistemaFuente: "{{job.parameters.SistemaFuente}}"
+              modo_control: "{{job.parameters.modo_control}}"
+              modo_ejecucion: "{{job.parameters.modo_ejecucion}}"
+              catalog_bronze: ${var.catalog_bronze}
+              catalog_silver: ${var.catalog_silver}
+              schema_sharepoint: ${var.schema_sharepoint}
+              storage_account_name: ${var.storage_account_name}

@@ -4,12 +4,10 @@
 
 | Job | Archivo | Uso |
 |---|---|---|
-| Full end to end | `resources/jobs/01_job_full_priorizacion_stock.yml` | Ejecucion completa del modelo |
-| Extraccion SAP | `resources/jobs/02_job_ext_saphana_priorizacion_stock.yml` | Reproceso o prueba de extraccion SAP |
-| Extraccion SharePoint | `resources/jobs/03_job_ext_sharepoint_priorizacion_stock.yml` | Reproceso o prueba de extraccion SharePoint |
-| Bronze to Silver SAP | `resources/jobs/04_job_bronze_to_silver_sap_priorizacion_stock.yml` | Reproceso Silver SAP |
-| Bronze to Silver SharePoint | `resources/jobs/05_job_bronze_to_silver_sharepoint_priorizacion_stock.yml` | Reproceso Silver SharePoint |
-| Modelo y publicacion | `resources/jobs/06_job_modelo_creacion_indice_priorizacion.yml` | Recalculo del indice y publicacion SQL |
+| Full end to end | `resources/jobs/01_full.yml` | Ejecucion completa del modelo |
+| Extracciones SAP/SharePoint | `resources/jobs/02_extracciones.yml` | Reproceso o prueba de extracciones |
+| Transformaciones SAP/SharePoint | `resources/jobs/03_transformaciones.yml` | Reproceso Silver |
+| Modelo y publicacion | `resources/jobs/04_modelo_publicacion.yml` | Recalculo del indice y publicacion SQL |
 
 ## 2. Parametros operativos
 
@@ -95,7 +93,7 @@ Si una regla con severidad `CRITICAL` falla, el notebook de calidad o reconcilia
 
 ## 7. Publicacion SQL Server
 
-El notebook `notebooks/05_publicacion/01_nb_publicar_resultados_sql.py` lee:
+El notebook `notebooks/05_publicacion/01_sql_server.py` lee:
 
 ```sql
 SELECT cod_cliente, prioridad, Estatus, create_timestamp
