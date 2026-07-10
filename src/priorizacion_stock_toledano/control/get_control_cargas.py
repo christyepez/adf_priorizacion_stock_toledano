@@ -175,8 +175,9 @@ def _get_secret(dbutils: Any, secret_scope: str, secret_name: str, logical_name:
             pass
         raise ValueError(
             f"No se pudo leer el secreto '{logical_name}' con scope '{secret_scope}' y key '{secret_name}'. "
-            "Valida que el Secret Scope de Databricks este respaldado por el Key Vault correcto "
-            "o ajusta el nombre de key en el widget/variable del bundle."
+            "Valida que el scope exista, que tu usuario o job cluster tenga permiso READ sobre el scope, "
+            "que la key exista dentro del scope y que el notebook/job este ejecutando la version desplegada "
+            "mas reciente de databricks.yml/config.py."
             f"{available}"
         ) from exc
 

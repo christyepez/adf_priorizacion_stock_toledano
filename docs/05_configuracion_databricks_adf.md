@@ -30,6 +30,8 @@ secret_scope: sc-kv-toledano-bigdata-dev
 
 Si el nombre real del Secret Scope cambia, se debe modificar solo esta variable en `databricks.yml`.
 
+El valor `secret-kv-toledano` informado en el inventario corresponde a una key disponible dentro del scope, no al nombre del Secret Scope usado por los notebooks.
+
 ## 3. Secretos usados por Priorizacion de Stock
 
 | Componente | Variable bundle | Secret configurado |
@@ -63,12 +65,14 @@ Estos secretos existen en Databricks, pero no son requeridos por Priorizacion de
 - `sc-dichterneira-username`
 - `sc-gruporey-password`
 - `sc-gruporey-username`
+- `sc-sqlbigdatatoledano-pass`
 - `sc-sql-mercadeo-pass`
 - `sc-sql-mercadeo-user`
 - `sc-sqlbigdatapronaca-database`
 - `sc-sqlbigdatapronaca-password`
 - `sc-sqlbigdatapronaca-server`
 - `sc-sqlbigdatapronaca-username`
+- `secret-kv-toledano`
 
 ## 5. Notificaciones
 
@@ -94,6 +98,32 @@ notification_enabled: "true"
 2. Validar que exista el Secret Scope `sc-kv-toledano-bigdata-dev`.
 3. Confirmar que dentro del scope existan las keys usadas por el modelo.
 4. No guardar valores en notebooks ni YAML; solo nombres de keys.
+
+Validacion recomendada en un notebook temporal de Databricks:
+
+```python
+scope = "sc-kv-toledano-bigdata-dev"
+required_keys = [
+    "sc-sqlbigdatatoledano-server",
+    "sc-sqlbigdatatoledano-database",
+    "sc-sqlbigdatatoledano-username",
+    "sc-sqlbigdatatoledano-password",
+    "sc-saphana-servernode",
+    "sc-saphana-username",
+    "sc-saphana-password",
+    "sc-sharepoint-client-id",
+    "sc-sharepoint-secret-id",
+    "sc-sharepoint-tenant-id",
+    "sc-sql-orcpanama-username",
+    "sc-sql-orcpanama-password",
+]
+
+for key in required_keys:
+    dbutils.secrets.get(scope, key)
+    print(f"{key}: OK")
+```
+
+Si una key aparece en el inventario pero `dbutils.secrets.get` falla, revisar permisos `READ` del scope para el usuario o service principal que ejecuta el job.
 
 ### 6.2 Configurar Linked Service de Key Vault en ADF
 

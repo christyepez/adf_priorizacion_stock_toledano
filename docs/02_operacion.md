@@ -41,6 +41,8 @@ El bundle usa `sc-kv-toledano-bigdata-dev` como Secret Scope de Databricks. Ante
 
 No se recomienda crear un notebook comun de configuracion con `%run`. La configuracion por ambiente vive en `databricks.yml`, los jobs pasan widgets a cada task y `src/priorizacion_stock_toledano` conserva el codigo reusable.
 
+Si una key existe en el inventario del scope pero el notebook no puede leerla, validar permisos `READ` del Secret Scope para el usuario/job cluster y confirmar que el bundle fue desplegado con el ultimo commit de la rama.
+
 Las notificaciones estan desactivadas por defecto con `notification_enabled=false`, porque no existe una key de endpoint Logic App en la lista de secretos disponible. Para activarlas se debe crear la key del endpoint, asignarla a `notification_endpoint_secret` y cambiar `notification_enabled=true`.
 
 ## 4. Ejecucion por ambiente
