@@ -22,7 +22,28 @@
 | `modo_ejecucion` | `normal` | Bandera operacional para extensiones |
 | `emails` | vacio | Lista de destinatarios separados por coma o punto y coma |
 
-## 3. Ejecucion por ambiente
+## 3. Configuracion de secretos
+
+El bundle usa `secret-kv-toledano` como Secret Scope de Databricks. Antes de ejecutar extracciones, validar que el scope exista y que contenga las keys declaradas en `databricks.yml`, especialmente:
+
+- `sc-sqlbigdatatoledano-server`
+- `sc-sqlbigdatatoledano-database`
+- `sc-sqlbigdatatoledano-username`
+- `sc-sqlbigdatatoledano-password`
+- `sc-saphana-servernode`
+- `sc-saphana-username`
+- `sc-saphana-password`
+- `sc-sharepoint-client-id`
+- `sc-sharepoint-secret-id`
+- `sc-sharepoint-tenant-id`
+- `sc-sql-orcpanama-username`
+- `sc-sql-orcpanama-password`
+
+No se recomienda crear un notebook comun de configuracion con `%run`. La configuracion por ambiente vive en `databricks.yml`, los jobs pasan widgets a cada task y `src/priorizacion_stock_toledano` conserva el codigo reusable.
+
+Las notificaciones estan desactivadas por defecto con `notification_enabled=false`, porque no existe una key de endpoint Logic App en la lista de secretos disponible. Para activarlas se debe crear la key del endpoint, asignarla a `notification_endpoint_secret` y cambiar `notification_enabled=true`.
+
+## 4. Ejecucion por ambiente
 
 Validar el bundle:
 
@@ -48,7 +69,7 @@ databricks bundle run job_full_priorizacion_stock -t dev
 
 Para `test` y `prod`, cambiar el target correspondiente.
 
-## 4. Flujo operativo end to end
+## 5. Flujo operativo end to end
 
 El job `job_full_priorizacion_stock` ejecuta:
 
@@ -66,7 +87,7 @@ El job `job_full_priorizacion_stock` ejecuta:
 12. `notify_success`
 13. `audit_finish`
 
-## 5. Auditoria
+## 6. Auditoria
 
 Los eventos operativos se guardan en:
 
@@ -81,7 +102,7 @@ Estados soportados:
 - `FAILED`
 - `WARNING`
 
-## 6. Calidad
+## 7. Calidad
 
 Los resultados de calidad se guardan en:
 
@@ -91,7 +112,7 @@ toledano_gold_{ambiente}.atlas.quality_results
 
 Si una regla con severidad `CRITICAL` falla, el notebook de calidad o reconciliacion levanta una excepcion controlada y el job se detiene.
 
-## 7. Publicacion SQL Server
+## 8. Publicacion SQL Server
 
 El notebook `notebooks/05_publicacion/01_sql_server.py` lee:
 
@@ -114,7 +135,7 @@ Modos soportados:
 
 El modo configurado en jobs es `truncate_insert`.
 
-## 8. Manejo de incidentes
+## 9. Manejo de incidentes
 
 | Sintoma | Accion recomendada |
 |---|---|
@@ -127,7 +148,7 @@ El modo configurado en jobs es `truncate_insert`.
 | Falla publicacion SQL | Validar `sql_publication_server`, `sql_publication_database`, secretos de usuario/password, permisos y tabla destino |
 | Falla notificacion | Consultar evento `WARNING` en auditoria; no debe ocultar el error original |
 
-## 9. Reprocesos
+## 10. Reprocesos
 
 Para reprocesar parcialmente:
 
