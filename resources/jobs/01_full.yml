@@ -61,6 +61,8 @@ resources:
               fail_fast: "true"
               secret_scope: ${var.secret_scope}
               storage_account_name: ${var.storage_account_name}
+              sql_control_server: ${var.sql_control_server}
+              sql_control_database: ${var.sql_control_database}
               sql_control_server_secret: ${var.sql_control_server_secret}
               sql_control_database_secret: ${var.sql_control_database_secret}
               sql_control_username_secret: ${var.sql_control_username_secret}
@@ -90,6 +92,8 @@ resources:
               fail_fast: "true"
               secret_scope: ${var.secret_scope}
               storage_account_name: ${var.storage_account_name}
+              sql_control_server: ${var.sql_control_server}
+              sql_control_database: ${var.sql_control_database}
               sql_control_server_secret: ${var.sql_control_server_secret}
               sql_control_database_secret: ${var.sql_control_database_secret}
               sql_control_username_secret: ${var.sql_control_username_secret}

@@ -49,6 +49,8 @@ class SqlSecretNames:
     database: str
     username: str
     password: str
+    server_value: str | None = None
+    database_value: str | None = None
 
 
 def _clean(value: Any) -> Any:
@@ -160,14 +162,35 @@ def jdbc_url(
     )
 
 
+def _get_secret(dbutils: Any, secret_scope: str, secret_name: str, logical_name: str) -> str:
+    try:
+        return dbutils.secrets.get(secret_scope, secret_name)
+    except Exception as exc:
+        available = ""
+        try:
+            keys = sorted(secret.key for secret in dbutils.secrets.list(secret_scope))
+            if keys:
+                available = f" Secret keys visibles en el scope: {', '.join(keys)}."
+        except Exception:
+            pass
+        raise ValueError(
+            f"No se pudo leer el secreto '{logical_name}' con scope '{secret_scope}' y key '{secret_name}'. "
+            "Valida que el Secret Scope de Databricks este respaldado por el Key Vault correcto "
+            "o ajusta el nombre de key en el widget/variable del bundle."
+            f"{available}"
+        ) from exc
+
+
 def read_sql_secret_values(dbutils: Any, secret_scope: str, secret_names: SqlSecretNames) -> dict[str, str]:
     if not secret_scope:
         raise ValueError("secret_scope es obligatorio")
+    server = (secret_names.server_value or "").strip()
+    database = (secret_names.database_value or "").strip()
     return {
-        "server": dbutils.secrets.get(secret_scope, secret_names.server),
-        "database": dbutils.secrets.get(secret_scope, secret_names.database),
-        "username": dbutils.secrets.get(secret_scope, secret_names.username),
-        "password": dbutils.secrets.get(secret_scope, secret_names.password),
+        "server": server or _get_secret(dbutils, secret_scope, secret_names.server, "sql_control_server"),
+        "database": database or _get_secret(dbutils, secret_scope, secret_names.database, "sql_control_database"),
+        "username": _get_secret(dbutils, secret_scope, secret_names.username, "sql_control_username"),
+        "password": _get_secret(dbutils, secret_scope, secret_names.password, "sql_control_password"),
     }
 
 

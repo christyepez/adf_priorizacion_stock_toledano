@@ -3,13 +3,29 @@ import unittest
 from priorizacion_stock_toledano.control.get_control_cargas import (
     CONTROL_VIEW_NAME,
     STANDARD_COLUMNS,
+    SqlSecretNames,
     build_get_control_cargas_query,
     filter_by_owner,
     jdbc_url,
     normalize_control_records,
+    read_sql_secret_values,
     validate_active_records,
     validate_inputs,
 )
+
+
+class FakeSecrets:
+    def __init__(self):
+        self.calls = []
+
+    def get(self, scope, key):
+        self.calls.append((scope, key))
+        return f"value-{key}"
+
+
+class FakeDbutils:
+    def __init__(self):
+        self.secrets = FakeSecrets()
 
 
 def test_build_get_control_cargas_query_uses_expected_procedure_and_parameters():
@@ -94,3 +110,27 @@ def test_jdbc_url_does_not_include_credentials():
 
 def test_control_view_name_contract():
     assert CONTROL_VIEW_NAME == "vw_control_cargas_priorizacion_stock"
+
+
+def test_read_sql_secret_values_allows_non_sensitive_server_and_database_values():
+    dbutils = FakeDbutils()
+
+    values = read_sql_secret_values(
+        dbutils,
+        "scope",
+        SqlSecretNames(
+            server="server-secret",
+            database="database-secret",
+            username="username-secret",
+            password="password-secret",
+            server_value="sql-control.local",
+            database_value="ControlDB",
+        ),
+    )
+
+    assert values["server"] == "sql-control.local"
+    assert values["database"] == "ControlDB"
+    assert values["username"] == "value-username-secret"
+    assert values["password"] == "value-password-secret"
+    assert ("scope", "server-secret") not in dbutils.secrets.calls
+    assert ("scope", "database-secret") not in dbutils.secrets.calls

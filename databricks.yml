@@ -85,9 +85,17 @@ variables:
     description: Nombre del secreto del servidor SQL de control.
     default: sc-sqlbigdatatoledano-server
 
+  sql_control_server:
+    description: Valor opcional no sensible del servidor SQL de control si el Secret Scope no expone la key del ARM.
+    default: ""
+
   sql_control_database_secret:
     description: Nombre del secreto de la base SQL de control.
     default: sc-sqlbigdatatoledano-database
+
+  sql_control_database:
+    description: Valor opcional no sensible de la base SQL de control si el Secret Scope no expone la key del ARM.
+    default: ""
 
   sql_control_username_secret:
     description: Nombre del secreto del usuario SQL de control.
@@ -252,7 +260,9 @@ targets:
       gold_container: gold
       staging_path: bronze/temp
       sql_control_server_secret: sc-sqlbigdatatoledano-server
+      sql_control_server: ""
       sql_control_database_secret: sc-sqlbigdatatoledano-database
+      sql_control_database: ""
       sql_control_username_secret: sc-sqlbigdatatoledano-username
       sql_control_password_secret: sc-sqlbigdatatoledano-password
       sql_control_schema: conf
@@ -312,7 +322,9 @@ targets:
       gold_container: gold
       staging_path: bronze/temp
       sql_control_server_secret: sc-sqlbigdatatoledano-server
+      sql_control_server: ""
       sql_control_database_secret: sc-sqlbigdatatoledano-database
+      sql_control_database: ""
       sql_control_username_secret: sc-sqlbigdatatoledano-username
       sql_control_password_secret: sc-sqlbigdatatoledano-password
       sql_control_schema: conf
@@ -372,7 +384,9 @@ targets:
       gold_container: gold
       staging_path: bronze/temp
       sql_control_server_secret: sc-sqlbigdatatoledano-server
+      sql_control_server: ""
       sql_control_database_secret: sc-sqlbigdatatoledano-database
+      sql_control_database: ""
       sql_control_username_secret: sc-sqlbigdatatoledano-username
       sql_control_password_secret: sc-sqlbigdatatoledano-password
       sql_control_schema: conf

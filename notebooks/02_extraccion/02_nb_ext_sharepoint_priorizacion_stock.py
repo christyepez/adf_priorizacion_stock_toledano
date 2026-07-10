@@ -56,6 +56,8 @@ dbutils.widgets.text("execution_id", "")
 dbutils.widgets.text("fail_fast", "true")
 dbutils.widgets.text("secret_scope", "kv-bigd-toledano-dev-01")
 dbutils.widgets.text("storage_account_name", "dlsbigdatatoledanodev")
+dbutils.widgets.text("sql_control_server", "")
+dbutils.widgets.text("sql_control_database", "")
 dbutils.widgets.text("sql_control_server_secret", "sc-sqlbigdatatoledano-server")
 dbutils.widgets.text("sql_control_database_secret", "sc-sqlbigdatatoledano-database")
 dbutils.widgets.text("sql_control_username_secret", "sc-sqlbigdatatoledano-username")
@@ -111,6 +113,8 @@ execution_id = dbutils.widgets.get("execution_id").strip() or str(uuid4())
 fail_fast = dbutils.widgets.get("fail_fast").strip().lower() == "true"
 secret_scope = dbutils.widgets.get("secret_scope").strip() or "kv-bigd-toledano-dev-01"
 storage_account_name = dbutils.widgets.get("storage_account_name").strip() or "dlsbigdatatoledanodev"
+sql_control_server = dbutils.widgets.get("sql_control_server").strip()
+sql_control_database = dbutils.widgets.get("sql_control_database").strip()
 sql_control_encrypt = dbutils.widgets.get("sql_control_encrypt").strip() or "true"
 sql_control_trust_server_certificate = (
     dbutils.widgets.get("sql_control_trust_server_certificate").strip() or "false"
@@ -147,6 +151,8 @@ control_secrets = read_sql_secret_values(
         database=dbutils.widgets.get("sql_control_database_secret").strip() or "sc-sqlbigdatatoledano-database",
         username=dbutils.widgets.get("sql_control_username_secret").strip() or "sc-sqlbigdatatoledano-username",
         password=dbutils.widgets.get("sql_control_password_secret").strip() or "sc-sqlbigdatatoledano-password",
+        server_value=sql_control_server,
+        database_value=sql_control_database,
     ),
 )
 
