@@ -24,7 +24,7 @@
 
 ## 3. Configuracion de secretos
 
-El bundle usa `secret-kv-toledano` como Secret Scope de Databricks. Antes de ejecutar extracciones, validar que el scope exista y que contenga las keys declaradas en `databricks.yml`, especialmente:
+El bundle usa `sc-kv-toledano-bigdata-dev` como Secret Scope de Databricks. Antes de ejecutar extracciones, validar que el scope exista y que contenga las keys declaradas en `databricks.yml`, especialmente:
 
 - `sc-sqlbigdatatoledano-server`
 - `sc-sqlbigdatatoledano-database`

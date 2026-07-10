@@ -16,7 +16,7 @@ DEFAULT_WIDGET_VALUES = {
     "AñoMesDiaFinal": "0",
     "modo_control": "get_control_cargas",
     "modo_ejecucion": "normal",
-    "secret_scope": "secret-kv-toledano",
+    "secret_scope": "sc-kv-toledano-bigdata-dev",
     "catalog_bronze": "toledano_bronze_dev",
     "catalog_silver": "toledano_silver_dev",
     "catalog_gold": "toledano_gold_dev",

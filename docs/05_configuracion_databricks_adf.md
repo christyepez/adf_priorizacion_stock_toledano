@@ -25,7 +25,7 @@ La alternativa recomendada es:
 El bundle queda configurado para usar:
 
 ```yaml
-secret_scope: secret-kv-toledano
+secret_scope: sc-kv-toledano-bigdata-dev
 ```
 
 Si el nombre real del Secret Scope cambia, se debe modificar solo esta variable en `databricks.yml`.
@@ -91,7 +91,7 @@ notification_enabled: "true"
 ### 6.1 Crear o validar Secret Scope en Databricks
 
 1. Abrir Databricks.
-2. Validar que exista el Secret Scope `secret-kv-toledano`.
+2. Validar que exista el Secret Scope `sc-kv-toledano-bigdata-dev`.
 3. Confirmar que dentro del scope existan las keys usadas por el modelo.
 4. No guardar valores en notebooks ni YAML; solo nombres de keys.
 

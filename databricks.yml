@@ -47,7 +47,7 @@ variables:
 
   secret_scope:
     description: Secret Scope de Databricks donde existen las keys sc-* del proyecto.
-    default: secret-kv-toledano
+    default: sc-kv-toledano-bigdata-dev
 
   key_vault_url:
     description: URL publica del Azure Key Vault usado como referencia documental; no se usa como secreto.
@@ -270,7 +270,7 @@ targets:
       schema_sharepoint: sharepoint
       schema_atlas: atlas
       schema_audit: audit
-      secret_scope: secret-kv-toledano
+      secret_scope: sc-kv-toledano-bigdata-dev
       key_vault_url: https://kv-bigd-toledano-dev-01.vault.azure.net/
       storage_account_url: https://dlsbigdatatoledanodev.dfs.core.windows.net/
       storage_account_name: dlsbigdatatoledanodev
@@ -337,7 +337,7 @@ targets:
       schema_sharepoint: sharepoint
       schema_atlas: atlas
       schema_audit: audit
-      secret_scope: secret-kv-toledano
+      secret_scope: sc-kv-toledano-bigdata-dev
       key_vault_url: https://kv-bigd-toledano-dev-01.vault.azure.net/
       storage_account_url: https://dlsbigdatatoledanodev.dfs.core.windows.net/
       storage_account_name: dlsbigdatatoledanodev
@@ -404,7 +404,7 @@ targets:
       schema_sharepoint: sharepoint
       schema_atlas: atlas
       schema_audit: audit
-      secret_scope: secret-kv-toledano
+      secret_scope: sc-kv-toledano-bigdata-dev
       key_vault_url: https://kv-bigd-toledano-dev-01.vault.azure.net/
       storage_account_url: https://dlsbigdatatoledanodev.dfs.core.windows.net/
       storage_account_name: dlsbigdatatoledanodev

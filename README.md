@@ -63,7 +63,7 @@ La carpeta `tests/` contiene pruebas unitarias para validar contratos, queries, 
 
 El proyecto no contiene credenciales, tokens, URLs firmadas ni secretos embebidos. Todos los valores sensibles deben resolverse por `secret_scope` usando los nombres de secreto declarados como variables del bundle.
 
-La configuracion del bundle queda alineada con los secretos disponibles en Databricks: `secret_scope` usa `secret-kv-toledano`, SAP HANA y SQL Control usan nombres de secretos existentes, SharePoint recibe una URL base publica sin firmas y OAuth por secretos, y la publicacion SQL usa `sql_publication_server`/`sql_publication_database` como valores no sensibles con usuario/password desde Secret Scope.
+La configuracion del bundle queda alineada con los secretos disponibles en Databricks: `secret_scope` usa `sc-kv-toledano-bigdata-dev`, SAP HANA y SQL Control usan nombres de secretos existentes, SharePoint recibe una URL base publica sin firmas y OAuth por secretos, y la publicacion SQL usa `sql_publication_server`/`sql_publication_database` como valores no sensibles con usuario/password desde Secret Scope.
 
 No se agrega un notebook global de configuracion. La fuente de verdad operacional es `databricks.yml`, los jobs inyectan widgets a cada notebook y el codigo reusable vive en `src/priorizacion_stock_toledano`. Las notificaciones quedan desactivadas por defecto (`notification_enabled=false`) hasta crear una key real para el endpoint de Logic App.
 
