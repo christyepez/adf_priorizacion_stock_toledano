@@ -54,20 +54,20 @@ dbutils.widgets.text("AñoMesDiaInicial", "0")
 dbutils.widgets.text("AñoMesDiaFinal", "0")
 dbutils.widgets.text("execution_id", "")
 dbutils.widgets.text("fail_fast", "true")
-dbutils.widgets.text("secret_scope", "kv-bigd-toledano-dev-01")
-dbutils.widgets.text("storage_account_name", "dlsbigdatatoledanodev")
+dbutils.widgets.text("secret_scope", "")
+dbutils.widgets.text("storage_account_name", "")
 dbutils.widgets.text("sql_control_server", "")
 dbutils.widgets.text("sql_control_database", "")
-dbutils.widgets.text("sql_control_server_secret", "sc-sqlbigdatatoledano-server")
-dbutils.widgets.text("sql_control_database_secret", "sc-sqlbigdatatoledano-database")
-dbutils.widgets.text("sql_control_username_secret", "sc-sqlbigdatatoledano-username")
-dbutils.widgets.text("sql_control_password_secret", "sc-sqlbigdatatoledano-password")
+dbutils.widgets.text("sql_control_server_secret", "")
+dbutils.widgets.text("sql_control_database_secret", "")
+dbutils.widgets.text("sql_control_username_secret", "")
+dbutils.widgets.text("sql_control_password_secret", "")
 dbutils.widgets.text("sql_control_encrypt", "true")
 dbutils.widgets.text("sql_control_trust_server_certificate", "false")
-dbutils.widgets.text("sap_hana_server_secret", "sc-saphana-servernode")
+dbutils.widgets.text("sap_hana_server_secret", "")
 dbutils.widgets.text("sap_hana_port_secret", "")
-dbutils.widgets.text("sap_hana_username_secret", "sc-saphana-username")
-dbutils.widgets.text("sap_hana_password_secret", "sc-saphana-password")
+dbutils.widgets.text("sap_hana_username_secret", "")
+dbutils.widgets.text("sap_hana_password_secret", "")
 dbutils.widgets.text("sap_hana_driver", "com.sap.db.jdbc.Driver")
 dbutils.widgets.text("sap_hana_propietario_fuente", "VistasSapHana")
 dbutils.widgets.text("metrics_delta_table", "")
@@ -106,8 +106,8 @@ anio_mes_dia_inicial = dbutils.widgets.get("AñoMesDiaInicial")
 anio_mes_dia_final = dbutils.widgets.get("AñoMesDiaFinal")
 execution_id = dbutils.widgets.get("execution_id").strip() or str(uuid4())
 fail_fast = dbutils.widgets.get("fail_fast").strip().lower() == "true"
-secret_scope = dbutils.widgets.get("secret_scope").strip() or "kv-bigd-toledano-dev-01"
-storage_account_name = dbutils.widgets.get("storage_account_name").strip() or "dlsbigdatatoledanodev"
+secret_scope = dbutils.widgets.get("secret_scope").strip()
+storage_account_name = dbutils.widgets.get("storage_account_name").strip()
 sql_control_server = dbutils.widgets.get("sql_control_server").strip()
 sql_control_database = dbutils.widgets.get("sql_control_database").strip()
 sql_control_encrypt = dbutils.widgets.get("sql_control_encrypt").strip() or "true"
@@ -134,10 +134,10 @@ control_secrets = read_sql_secret_values(
     dbutils,
     secret_scope,
     SqlSecretNames(
-        server=dbutils.widgets.get("sql_control_server_secret").strip() or "sc-sqlbigdatatoledano-server",
-        database=dbutils.widgets.get("sql_control_database_secret").strip() or "sc-sqlbigdatatoledano-database",
-        username=dbutils.widgets.get("sql_control_username_secret").strip() or "sc-sqlbigdatatoledano-username",
-        password=dbutils.widgets.get("sql_control_password_secret").strip() or "sc-sqlbigdatatoledano-password",
+        server=dbutils.widgets.get("sql_control_server_secret").strip(),
+        database=dbutils.widgets.get("sql_control_database_secret").strip(),
+        username=dbutils.widgets.get("sql_control_username_secret").strip(),
+        password=dbutils.widgets.get("sql_control_password_secret").strip(),
         server_value=sql_control_server,
         database_value=sql_control_database,
     ),
@@ -179,10 +179,10 @@ sap_secrets = read_sap_secret_values(
     dbutils,
     secret_scope,
     SapHanaSecretNames(
-        server=dbutils.widgets.get("sap_hana_server_secret").strip() or "sc-saphana-servernode",
+        server=dbutils.widgets.get("sap_hana_server_secret").strip(),
         port=sap_port_secret,
-        username=dbutils.widgets.get("sap_hana_username_secret").strip() or "sc-saphana-username",
-        password=dbutils.widgets.get("sap_hana_password_secret").strip() or "sc-saphana-password",
+        username=dbutils.widgets.get("sap_hana_username_secret").strip(),
+        password=dbutils.widgets.get("sap_hana_password_secret").strip(),
     ),
 )
 sap_url = hana_jdbc_url(sap_secrets["server"], sap_secrets.get("port"))
