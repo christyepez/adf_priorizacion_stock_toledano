@@ -198,3 +198,35 @@ sql_control_database: "<base_sql_control>"
 ```
 
 Usuario y password deben permanecer siempre en Secret Scope.
+
+## 8. Lectura de GetControlCargas
+
+El bundle soporta dos modos:
+
+```yaml
+sql_control_read_mode: jdbc_sp
+```
+
+Usa SQL Server externo y ejecuta `conf.GetControlCargas` por JDBC directo. Es el modo compatible con ADF y con el procedimiento original.
+
+```yaml
+sql_control_read_mode: spark_sql
+```
+
+Usa `spark.sql(...)` cuando el control ya fue expuesto como vista, tabla o query dentro de Databricks. En este modo se debe configurar al menos una de estas variables:
+
+```yaml
+sql_control_spark_relation: conf.vw_control_cargas_priorizacion_stock
+```
+
+o una query completa:
+
+```yaml
+sql_control_spark_sql: >
+  SELECT *
+  FROM conf.vw_control_cargas_priorizacion_stock
+  WHERE Proceso = 'Modelo_Priorizacion_Stock'
+    AND SistemaFuente = 'SapHana'
+```
+
+No usar `spark.sql("EXEC conf.GetControlCargas ...")` salvo que ese `EXEC` exista realmente en el motor SQL de Databricks. Para SQL Server remoto se debe mantener `jdbc_sp`.

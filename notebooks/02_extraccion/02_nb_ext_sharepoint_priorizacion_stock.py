@@ -60,6 +60,9 @@ define_text_widget(dbutils, "secret_scope", "")
 define_text_widget(dbutils, "storage_account_name", "")
 define_text_widget(dbutils, "sql_control_server", "")
 define_text_widget(dbutils, "sql_control_database", "")
+define_text_widget(dbutils, "sql_control_read_mode", "jdbc_sp")
+define_text_widget(dbutils, "sql_control_spark_sql", "")
+define_text_widget(dbutils, "sql_control_spark_relation", "")
 define_text_widget(dbutils, "sql_control_server_secret", "")
 define_text_widget(dbutils, "sql_control_database_secret", "")
 define_text_widget(dbutils, "sql_control_username_secret", "")
@@ -86,8 +89,11 @@ from priorizacion_stock_toledano.control.get_control_cargas import (
     build_get_control_cargas_query,
     jdbc_url,
     normalize_spark_dataframe,
+    read_get_control_cargas_spark_sql,
     read_get_control_cargas_jdbc,
     read_sql_secret_values,
+    resolve_get_control_cargas_spark_sql,
+    validate_control_read_mode,
 )
 from priorizacion_stock_toledano.extraction.sharepoint_extractor import (
     SHAREPOINT_METRICS_VIEW_NAME,
@@ -117,6 +123,9 @@ secret_scope = dbutils.widgets.get("secret_scope").strip()
 storage_account_name = dbutils.widgets.get("storage_account_name").strip()
 sql_control_server = dbutils.widgets.get("sql_control_server").strip()
 sql_control_database = dbutils.widgets.get("sql_control_database").strip()
+sql_control_read_mode = validate_control_read_mode(dbutils.widgets.get("sql_control_read_mode"))
+sql_control_spark_sql = dbutils.widgets.get("sql_control_spark_sql").strip()
+sql_control_spark_relation = dbutils.widgets.get("sql_control_spark_relation").strip()
 sql_control_encrypt = dbutils.widgets.get("sql_control_encrypt").strip() or "true"
 sql_control_trust_server_certificate = (
     dbutils.widgets.get("sql_control_trust_server_certificate").strip() or "false"
@@ -145,19 +154,6 @@ if not sharepoint_base_url:
         "o configura una URL base publica sin firmas ni tokens."
     )
 
-control_secrets = read_sql_secret_values(
-    dbutils,
-    secret_scope,
-    SqlSecretNames(
-        server=dbutils.widgets.get("sql_control_server_secret").strip(),
-        database=dbutils.widgets.get("sql_control_database_secret").strip(),
-        username=dbutils.widgets.get("sql_control_username_secret").strip(),
-        password=dbutils.widgets.get("sql_control_password_secret").strip(),
-        server_value=sql_control_server,
-        database_value=sql_control_database,
-    ),
-)
-
 control_query = build_get_control_cargas_query(
     anio_mes_dia_inicial=anio_mes_dia_inicial,
     anio_mes_dia_final=anio_mes_dia_final,
@@ -165,18 +161,41 @@ control_query = build_get_control_cargas_query(
     sistema_fuente=sistema_fuente,
 )
 
-df_control_raw = read_get_control_cargas_jdbc(
-    spark,
-    url=jdbc_url(
-        control_secrets["server"],
-        control_secrets["database"],
-        encrypt=sql_control_encrypt,
-        trust_server_certificate=sql_control_trust_server_certificate,
-    ),
-    username=control_secrets["username"],
-    password=control_secrets["password"],
-    query=control_query,
-)
+if sql_control_read_mode == "spark_sql":
+    control_query = resolve_get_control_cargas_spark_sql(
+        spark_sql=sql_control_spark_sql,
+        relation=sql_control_spark_relation,
+        anio_mes_dia_inicial=anio_mes_dia_inicial,
+        anio_mes_dia_final=anio_mes_dia_final,
+        proceso=process_name,
+        sistema_fuente=sistema_fuente,
+    )
+    df_control_raw = read_get_control_cargas_spark_sql(spark, control_query)
+else:
+    control_secrets = read_sql_secret_values(
+        dbutils,
+        secret_scope,
+        SqlSecretNames(
+            server=dbutils.widgets.get("sql_control_server_secret").strip(),
+            database=dbutils.widgets.get("sql_control_database_secret").strip(),
+            username=dbutils.widgets.get("sql_control_username_secret").strip(),
+            password=dbutils.widgets.get("sql_control_password_secret").strip(),
+            server_value=sql_control_server,
+            database_value=sql_control_database,
+        ),
+    )
+    df_control_raw = read_get_control_cargas_jdbc(
+        spark,
+        url=jdbc_url(
+            control_secrets["server"],
+            control_secrets["database"],
+            encrypt=sql_control_encrypt,
+            trust_server_certificate=sql_control_trust_server_certificate,
+        ),
+        username=control_secrets["username"],
+        password=control_secrets["password"],
+        query=control_query,
+    )
 
 df_control = (
     normalize_spark_dataframe(df_control_raw)

@@ -133,6 +133,18 @@ variables:
     description: Tabla de control usada por ADF.
     default: ControlCargas
 
+  sql_control_read_mode:
+    description: Modo de lectura de control: jdbc_sp para SQL Server externo o spark_sql para vista/query en Databricks.
+    default: jdbc_sp
+
+  sql_control_spark_sql:
+    description: Query Spark SQL opcional para leer control cuando sql_control_read_mode=spark_sql.
+    default: ""
+
+  sql_control_spark_relation:
+    description: Vista o tabla Databricks opcional para construir la query de control cuando sql_control_read_mode=spark_sql.
+    default: ""
+
   sql_control_sp:
     description: Procedimiento de control de cargas.
     default: conf.GetControlCargas
@@ -292,6 +304,9 @@ targets:
       sql_control_password_secret: sc-sqlbigdatatoledano-password
       sql_control_schema: conf
       sql_control_table: ControlCargas
+      sql_control_read_mode: jdbc_sp
+      sql_control_spark_sql: ""
+      sql_control_spark_relation: ""
       sql_control_sp: conf.GetControlCargas
       sql_control_encrypt: "true"
       sql_control_trust_server_certificate: "false"
@@ -359,6 +374,9 @@ targets:
       sql_control_password_secret: sc-sqlbigdatatoledano-password
       sql_control_schema: conf
       sql_control_table: ControlCargas
+      sql_control_read_mode: jdbc_sp
+      sql_control_spark_sql: ""
+      sql_control_spark_relation: ""
       sql_control_sp: conf.GetControlCargas
       sql_control_encrypt: "true"
       sql_control_trust_server_certificate: "false"
@@ -426,6 +444,9 @@ targets:
       sql_control_password_secret: sc-sqlbigdatatoledano-password
       sql_control_schema: conf
       sql_control_table: ControlCargas
+      sql_control_read_mode: jdbc_sp
+      sql_control_spark_sql: ""
+      sql_control_spark_relation: ""
       sql_control_sp: conf.GetControlCargas
       sql_control_encrypt: "true"
       sql_control_trust_server_certificate: "false"

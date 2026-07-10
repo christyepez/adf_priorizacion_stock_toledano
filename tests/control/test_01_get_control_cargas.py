@@ -5,12 +5,14 @@ from priorizacion_stock_toledano.control.get_control_cargas import (
     STANDARD_COLUMNS,
     SqlSecretNames,
     build_get_control_cargas_query,
+    build_get_control_cargas_spark_sql,
     filter_by_owner,
     is_exec_statement,
     jdbc_url,
     normalize_control_records,
     read_sql_secret_values,
     validate_active_records,
+    validate_control_read_mode,
     validate_inputs,
 )
 
@@ -54,6 +56,25 @@ def test_get_control_cargas_query_is_detected_as_exec_statement():
 
     assert is_exec_statement(query)
     assert not is_exec_statement("SELECT * FROM conf.ControlCargas")
+
+
+def test_validate_control_read_mode_accepts_expected_modes():
+    assert validate_control_read_mode("jdbc_sp") == "jdbc_sp"
+    assert validate_control_read_mode("SPARK_SQL") == "spark_sql"
+
+
+def test_build_get_control_cargas_spark_sql_builds_select_over_relation():
+    query = build_get_control_cargas_spark_sql(
+        relation="conf.vw_control_cargas_priorizacion_stock",
+        anio_mes_dia_inicial="0",
+        anio_mes_dia_final="0",
+        proceso="Modelo_Priorizacion_Stock",
+        sistema_fuente="SapHana",
+    )
+
+    assert "SELECT *" in query
+    assert "FROM `conf`.`vw_control_cargas_priorizacion_stock`" in query
+    assert "WHERE" not in query
 
 
 def test_normalize_control_records_preserves_arm_compatibility():

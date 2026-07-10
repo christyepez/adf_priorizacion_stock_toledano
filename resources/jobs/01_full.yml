@@ -63,6 +63,9 @@ resources:
               storage_account_name: ${var.storage_account_name}
               sql_control_server: ${var.sql_control_server}
               sql_control_database: ${var.sql_control_database}
+              sql_control_read_mode: ${var.sql_control_read_mode}
+              sql_control_spark_sql: ${var.sql_control_spark_sql}
+              sql_control_spark_relation: ${var.sql_control_spark_relation}
               sql_control_server_secret: ${var.sql_control_server_secret}
               sql_control_database_secret: ${var.sql_control_database_secret}
               sql_control_username_secret: ${var.sql_control_username_secret}
@@ -94,6 +97,9 @@ resources:
               storage_account_name: ${var.storage_account_name}
               sql_control_server: ${var.sql_control_server}
               sql_control_database: ${var.sql_control_database}
+              sql_control_read_mode: ${var.sql_control_read_mode}
+              sql_control_spark_sql: ${var.sql_control_spark_sql}
+              sql_control_spark_relation: ${var.sql_control_spark_relation}
               sql_control_server_secret: ${var.sql_control_server_secret}
               sql_control_database_secret: ${var.sql_control_database_secret}
               sql_control_username_secret: ${var.sql_control_username_secret}

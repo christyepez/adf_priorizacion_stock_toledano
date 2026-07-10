@@ -58,6 +58,9 @@ define_text_widget(dbutils, "propietario_fuente", "")
 define_text_widget(dbutils, "secret_scope", "")
 define_text_widget(dbutils, "sql_control_server", "")
 define_text_widget(dbutils, "sql_control_database", "")
+define_text_widget(dbutils, "sql_control_read_mode", "jdbc_sp")
+define_text_widget(dbutils, "sql_control_spark_sql", "")
+define_text_widget(dbutils, "sql_control_spark_relation", "")
 define_text_widget(dbutils, "sql_control_server_secret", "")
 define_text_widget(dbutils, "sql_control_database_secret", "")
 define_text_widget(dbutils, "sql_control_username_secret", "")
@@ -73,8 +76,11 @@ from priorizacion_stock_toledano.control.get_control_cargas import (
     build_get_control_cargas_query,
     jdbc_url,
     normalize_spark_dataframe,
+    read_get_control_cargas_spark_sql,
     read_get_control_cargas_jdbc,
     read_sql_secret_values,
+    resolve_get_control_cargas_spark_sql,
+    validate_control_read_mode,
 )
 
 from pyspark.sql.functions import col
@@ -88,6 +94,9 @@ propietario_fuente = dbutils.widgets.get("propietario_fuente").strip()
 secret_scope = dbutils.widgets.get("secret_scope").strip()
 sql_control_server = dbutils.widgets.get("sql_control_server").strip()
 sql_control_database = dbutils.widgets.get("sql_control_database").strip()
+sql_control_read_mode = validate_control_read_mode(dbutils.widgets.get("sql_control_read_mode"))
+sql_control_spark_sql = dbutils.widgets.get("sql_control_spark_sql").strip()
+sql_control_spark_relation = dbutils.widgets.get("sql_control_spark_relation").strip()
 sql_control_encrypt = dbutils.widgets.get("sql_control_encrypt").strip() or "true"
 sql_control_trust_server_certificate = (
     dbutils.widgets.get("sql_control_trust_server_certificate").strip() or "false"
@@ -102,31 +111,41 @@ query = build_get_control_cargas_query(
     sistema_fuente=sistema_fuente,
 )
 
-secret_values = read_sql_secret_values(
-    dbutils,
-    secret_scope,
-    SqlSecretNames(
-        server=dbutils.widgets.get("sql_control_server_secret").strip(),
-        database=dbutils.widgets.get("sql_control_database_secret").strip(),
-        username=dbutils.widgets.get("sql_control_username_secret").strip(),
-        password=dbutils.widgets.get("sql_control_password_secret").strip(),
-        server_value=sql_control_server,
-        database_value=sql_control_database,
-    ),
-)
-
-df_raw = read_get_control_cargas_jdbc(
-    spark,
-    url=jdbc_url(
-        secret_values["server"],
-        secret_values["database"],
-        encrypt=sql_control_encrypt,
-        trust_server_certificate=sql_control_trust_server_certificate,
-    ),
-    username=secret_values["username"],
-    password=secret_values["password"],
-    query=query,
-)
+if sql_control_read_mode == "spark_sql":
+    query = resolve_get_control_cargas_spark_sql(
+        spark_sql=sql_control_spark_sql,
+        relation=sql_control_spark_relation,
+        anio_mes_dia_inicial=anio_mes_dia_inicial,
+        anio_mes_dia_final=anio_mes_dia_final,
+        proceso=proceso,
+        sistema_fuente=sistema_fuente,
+    )
+    df_raw = read_get_control_cargas_spark_sql(spark, query)
+else:
+    secret_values = read_sql_secret_values(
+        dbutils,
+        secret_scope,
+        SqlSecretNames(
+            server=dbutils.widgets.get("sql_control_server_secret").strip(),
+            database=dbutils.widgets.get("sql_control_database_secret").strip(),
+            username=dbutils.widgets.get("sql_control_username_secret").strip(),
+            password=dbutils.widgets.get("sql_control_password_secret").strip(),
+            server_value=sql_control_server,
+            database_value=sql_control_database,
+        ),
+    )
+    df_raw = read_get_control_cargas_jdbc(
+        spark,
+        url=jdbc_url(
+            secret_values["server"],
+            secret_values["database"],
+            encrypt=sql_control_encrypt,
+            trust_server_certificate=sql_control_trust_server_certificate,
+        ),
+        username=secret_values["username"],
+        password=secret_values["password"],
+        query=query,
+    )
 
 df_control = normalize_spark_dataframe(df_raw).filter(col("activo") == True)
 

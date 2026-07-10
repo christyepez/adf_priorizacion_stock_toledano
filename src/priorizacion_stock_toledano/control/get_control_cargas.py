@@ -8,6 +8,7 @@ CONTROL_PROCEDURE = "conf.GetControlCargas"
 CONTROL_VIEW_NAME = "vw_control_cargas_priorizacion_stock"
 VALID_SISTEMAS_FUENTE = {"SapHana", "sharepoint"}
 VALID_PROPIETARIOS = {"VistasSapHana", "DatosPortalDeInformacion"}
+VALID_CONTROL_READ_MODES = {"jdbc_sp", "spark_sql"}
 
 STANDARD_COLUMNS = [
     "proceso",
@@ -107,6 +108,58 @@ def build_get_control_cargas_query(
     )
 
 
+def validate_control_read_mode(read_mode: str) -> str:
+    value = (read_mode or "jdbc_sp").strip().lower()
+    if value not in VALID_CONTROL_READ_MODES:
+        valid = ", ".join(sorted(VALID_CONTROL_READ_MODES))
+        raise ValueError(f"sql_control_read_mode invalido: {read_mode!r}. Valores permitidos: {valid}")
+    return value
+
+
+def _quote_spark_identifier(identifier: str) -> str:
+    clean = (identifier or "").strip()
+    if not clean:
+        raise ValueError("sql_control_spark_relation es obligatorio cuando no se informa sql_control_spark_sql")
+    if ";" in clean or "\x00" in clean:
+        raise ValueError(f"Identificador Spark SQL invalido: {identifier!r}")
+    return ".".join(f"`{part.replace('`', '``')}`" for part in clean.split("."))
+
+
+def build_get_control_cargas_spark_sql(
+    *,
+    relation: str,
+    anio_mes_dia_inicial: str,
+    anio_mes_dia_final: str,
+    proceso: str,
+    sistema_fuente: str,
+) -> str:
+    validate_inputs(proceso, sistema_fuente)
+    _to_int(anio_mes_dia_inicial)
+    _to_int(anio_mes_dia_final)
+    return f"SELECT *\nFROM {_quote_spark_identifier(relation)}"
+
+
+def resolve_get_control_cargas_spark_sql(
+    *,
+    spark_sql: str,
+    relation: str,
+    anio_mes_dia_inicial: str,
+    anio_mes_dia_final: str,
+    proceso: str,
+    sistema_fuente: str,
+) -> str:
+    custom_sql = (spark_sql or "").strip()
+    if custom_sql:
+        return custom_sql
+    return build_get_control_cargas_spark_sql(
+        relation=relation,
+        anio_mes_dia_inicial=anio_mes_dia_inicial,
+        anio_mes_dia_final=anio_mes_dia_final,
+        proceso=proceso,
+        sistema_fuente=sistema_fuente,
+    )
+
+
 def normalize_control_record(record: Mapping[str, Any]) -> dict[str, Any]:
     normalized = {column: None for column in STANDARD_COLUMNS}
     for key, value in record.items():
@@ -197,6 +250,12 @@ def read_sql_secret_values(dbutils: Any, secret_scope: str, secret_names: SqlSec
 
 def is_exec_statement(query: str) -> bool:
     return (query or "").lstrip().upper().startswith("EXEC ")
+
+
+def read_get_control_cargas_spark_sql(spark: Any, query: str) -> Any:
+    if not (query or "").strip():
+        raise ValueError("La query Spark SQL de control es obligatoria")
+    return spark.sql(query)
 
 
 def _spark_jvm(spark: Any) -> Any:
