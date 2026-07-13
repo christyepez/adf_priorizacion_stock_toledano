@@ -138,6 +138,7 @@ sql_control_trust_server_certificate = (
     dbutils.widgets.get("sql_control_trust_server_certificate").strip() or "false"
 )
 sharepoint_base_url = dbutils.widgets.get("sharepoint_base_url").strip()
+sharepoint_auth_mode = dbutils.widgets.get("sharepoint_auth_mode").strip() or "graph_client_credentials"
 sharepoint_propietario_fuente = (
     dbutils.widgets.get("sharepoint_propietario_fuente").strip() or "DatosPortalDeInformacion"
 )

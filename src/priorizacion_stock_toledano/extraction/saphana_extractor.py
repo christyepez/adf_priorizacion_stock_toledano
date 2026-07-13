@@ -132,15 +132,26 @@ def read_saphana_jdbc(
     query: str,
     driver: str = "com.sap.db.jdbc.Driver",
 ) -> Any:
-    return (
-        spark.read.format("jdbc")
-        .option("url", url)
-        .option("query", query)
-        .option("user", username)
-        .option("password", password)
-        .option("driver", driver)
-        .load()
-    )
+    try:
+        return (
+            spark.read.format("jdbc")
+            .option("url", url)
+            .option("query", query)
+            .option("user", username)
+            .option("password", password)
+            .option("driver", driver)
+            .load()
+        )
+    except Exception as exc:
+        message = str(exc)
+        if "JDBC_DRIVER_NOT_FOUND" in message or "ClassNotFoundException" in message or driver in message:
+            raise RuntimeError(
+                "No se encontro el driver JDBC de SAP HANA en el cluster Databricks. "
+                "Instala ngdbc.jar y configura la variable sap_hana_jdbc_jar del bundle, "
+                "por ejemplo dbfs:/FileStore/jars/sap/ngdbc.jar, o usa un cluster que ya tenga "
+                f"disponible la clase {driver}."
+            ) from exc
+        raise
 
 
 def add_technical_columns(
