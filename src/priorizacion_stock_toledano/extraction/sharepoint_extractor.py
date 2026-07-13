@@ -20,6 +20,7 @@ SHAREPOINT_METRICS_COLUMNS = [
     "error_message",
     "metric_timestamp_utc",
 ]
+FILE_PATH_AUTH_MODES = {"databricks_path", "databricks_volume", "mounted_path", "external_location"}
 
 
 @dataclass(frozen=True)
@@ -119,6 +120,20 @@ def build_sharepoint_download_url(base_url: str, record: Mapping[str, Any]) -> s
     url = urljoin(base_url.rstrip("/") + "/", encoded_path)
     reject_signed_or_secret_url(url)
     return url
+
+
+def is_databricks_file_path_mode(auth_mode: str) -> bool:
+    return (auth_mode or "").strip().lower() in FILE_PATH_AUTH_MODES
+
+
+def build_databricks_source_path(base_path: str, record: Mapping[str, Any]) -> str:
+    clean_base = (base_path or "").strip().rstrip("/")
+    if not clean_base:
+        raise ValueError("sharepoint_connection_path es obligatorio para modo databricks_path")
+    source_file = build_source_file_name(record).strip("/")
+    if not source_file:
+        raise ValueError("Ruta de archivo SharePoint vacia")
+    return f"{clean_base}/{source_file}"
 
 
 def graph_site_file_candidates(base_url: str, record: Mapping[str, Any]) -> list[tuple[str, str]]:

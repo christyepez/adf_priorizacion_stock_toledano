@@ -45,6 +45,17 @@ Si una key existe en el inventario del scope pero el notebook no puede leerla, v
 
 Las notificaciones estan desactivadas por defecto con `notification_enabled=false`, porque no existe una key de endpoint Logic App en la lista de secretos disponible. Para activarlas se debe crear la key del endpoint, asignarla a `notification_endpoint_secret` y cambiar `notification_enabled=true`.
 
+## 3.1 SharePoint con conexion Databricks
+
+Si el workspace ya tiene SharePoint expuesto como ruta accesible por Databricks, usar:
+
+```yaml
+sharepoint_auth_mode: databricks_path
+sharepoint_connection_path: /Volumes/<catalog>/<schema>/<volume>
+```
+
+Tambien se soportan rutas tipo `dbfs:/mnt/sharepoint`. En este modo el notebook no solicita token OAuth ni llama a Graph; copia directamente desde `sharepoint_connection_path/RutaArchivoFuente/NombreArchivoFuente` hacia Bronze usando `dbutils.fs.cp`.
+
 ## 4. Ejecucion por ambiente
 
 Validar el bundle:

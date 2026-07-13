@@ -222,8 +222,12 @@ variables:
     default: https://pronaca365.sharepoint.com/
 
   sharepoint_auth_mode:
-    description: Modo de autenticacion SharePoint.
+    description: Modo de autenticacion SharePoint. Valores soportados: graph_client_credentials, sharepoint_client_credentials, databricks_path.
     default: graph_client_credentials
+
+  sharepoint_connection_path:
+    description: Ruta Databricks ya autenticada para SharePoint cuando sharepoint_auth_mode=databricks_path. Ejemplos: /Volumes/catalog/schema/volume o dbfs:/mnt/sharepoint.
+    default: ""
 
   sharepoint_token_secret:
     description: Nombre opcional del secreto de token reutilizable SharePoint.
@@ -331,6 +335,7 @@ targets:
       sap_hana_propietario_fuente: VistasSapHana
       sharepoint_base_url: https://pronaca365.sharepoint.com/
       sharepoint_auth_mode: graph_client_credentials
+      sharepoint_connection_path: ""
       sharepoint_token_secret: ""
       sharepoint_client_id_secret: sc-sharepoint-client-id
       sharepoint_client_secret_secret: sc-sharepoint-secret-id
@@ -402,6 +407,7 @@ targets:
       sap_hana_propietario_fuente: VistasSapHana
       sharepoint_base_url: https://pronaca365.sharepoint.com/
       sharepoint_auth_mode: graph_client_credentials
+      sharepoint_connection_path: ""
       sharepoint_token_secret: ""
       sharepoint_client_id_secret: sc-sharepoint-client-id
       sharepoint_client_secret_secret: sc-sharepoint-secret-id
@@ -473,6 +479,7 @@ targets:
       sap_hana_propietario_fuente: VistasSapHana
       sharepoint_base_url: https://pronaca365.sharepoint.com/
       sharepoint_auth_mode: graph_client_credentials
+      sharepoint_connection_path: ""
       sharepoint_token_secret: ""
       sharepoint_client_id_secret: sc-sharepoint-client-id
       sharepoint_client_secret_secret: sc-sharepoint-secret-id

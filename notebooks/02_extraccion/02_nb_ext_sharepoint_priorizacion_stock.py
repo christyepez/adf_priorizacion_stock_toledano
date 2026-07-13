@@ -73,6 +73,7 @@ define_text_widget(dbutils, "sql_control_encrypt", "true")
 define_text_widget(dbutils, "sql_control_trust_server_certificate", "false")
 define_text_widget(dbutils, "sharepoint_base_url", "")
 define_text_widget(dbutils, "sharepoint_auth_mode", "graph_client_credentials")
+define_text_widget(dbutils, "sharepoint_connection_path", "")
 define_text_widget(dbutils, "sharepoint_token_secret", "")
 define_text_widget(dbutils, "sharepoint_client_id_secret", "")
 define_text_widget(dbutils, "sharepoint_client_secret_secret", "")
@@ -103,10 +104,12 @@ from priorizacion_stock_toledano.extraction.sharepoint_extractor import (
     SharePointSecretNames,
     assert_https_url,
     build_bronze_path,
+    build_databricks_source_path,
     build_source_file_name,
     count_rows_if_applicable,
     download_sharepoint_content,
     infer_file_type,
+    is_databricks_file_path_mode,
     metric_record,
     oauth_scope_for_sharepoint,
     read_sharepoint_secret_values,
@@ -139,6 +142,7 @@ sql_control_trust_server_certificate = (
 )
 sharepoint_base_url = dbutils.widgets.get("sharepoint_base_url").strip()
 sharepoint_auth_mode = dbutils.widgets.get("sharepoint_auth_mode").strip() or "graph_client_credentials"
+sharepoint_connection_path = dbutils.widgets.get("sharepoint_connection_path").strip()
 sharepoint_propietario_fuente = (
     dbutils.widgets.get("sharepoint_propietario_fuente").strip() or "DatosPortalDeInformacion"
 )
@@ -156,10 +160,17 @@ if not storage_account_name.strip():
         "o configura el widget storage_account_name."
     )
 
-if not sharepoint_base_url:
+if not sharepoint_base_url and not is_databricks_file_path_mode(sharepoint_auth_mode):
     raise ValueError(
         "sharepoint_base_url es obligatorio. Ejecuta el notebook desde el Databricks Job/Bundle "
         "o configura una URL base publica sin firmas ni tokens."
+    )
+
+if is_databricks_file_path_mode(sharepoint_auth_mode) and not sharepoint_connection_path:
+    raise ValueError(
+        "sharepoint_connection_path es obligatorio cuando sharepoint_auth_mode usa databricks_path. "
+        "Configura una ruta accesible por Databricks, por ejemplo /Volumes/catalog/schema/volume "
+        "o dbfs:/mnt/sharepoint."
     )
 
 if sql_control_read_mode == "spark_sql":
@@ -227,40 +238,42 @@ if not control_rows:
         f"No existen registros activos de control para PropietarioFuente={sharepoint_propietario_fuente}"
     )
 
-sp_secret_values = read_sharepoint_secret_values(
-    dbutils,
-    secret_scope,
-    SharePointSecretNames(
-        token=dbutils.widgets.get("sharepoint_token_secret").strip() or None,
-        client_id=dbutils.widgets.get("sharepoint_client_id_secret").strip() or None,
-        client_secret=dbutils.widgets.get("sharepoint_client_secret_secret").strip() or None,
-        tenant_id=dbutils.widgets.get("sharepoint_tenant_id_secret").strip() or None,
-    ),
-)
-
+headers = {}
 base_url = sharepoint_base_url
-assert_https_url(base_url)
-reject_signed_or_secret_url(base_url)
-
-token = sp_secret_values.get("token")
-if not token:
-    tenant_id = sp_secret_values["tenant_id"]
-    token_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
-    oauth_scope = oauth_scope_for_sharepoint(base_url, sharepoint_auth_mode)
-    token_response = requests.post(
-        token_url,
-        data={
-            "client_id": sp_secret_values["client_id"],
-            "client_secret": sp_secret_values["client_secret"],
-            "scope": oauth_scope,
-            "grant_type": "client_credentials",
-        },
-        timeout=60,
+if not is_databricks_file_path_mode(sharepoint_auth_mode):
+    sp_secret_values = read_sharepoint_secret_values(
+        dbutils,
+        secret_scope,
+        SharePointSecretNames(
+            token=dbutils.widgets.get("sharepoint_token_secret").strip() or None,
+            client_id=dbutils.widgets.get("sharepoint_client_id_secret").strip() or None,
+            client_secret=dbutils.widgets.get("sharepoint_client_secret_secret").strip() or None,
+            tenant_id=dbutils.widgets.get("sharepoint_tenant_id_secret").strip() or None,
+        ),
     )
-    token_response.raise_for_status()
-    token = token_response.json()["access_token"]
 
-headers = {"Authorization": f"Bearer {token}"}
+    assert_https_url(base_url)
+    reject_signed_or_secret_url(base_url)
+
+    token = sp_secret_values.get("token")
+    if not token:
+        tenant_id = sp_secret_values["tenant_id"]
+        token_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
+        oauth_scope = oauth_scope_for_sharepoint(base_url, sharepoint_auth_mode)
+        token_response = requests.post(
+            token_url,
+            data={
+                "client_id": sp_secret_values["client_id"],
+                "client_secret": sp_secret_values["client_secret"],
+                "scope": oauth_scope,
+                "grant_type": "client_credentials",
+            },
+            timeout=60,
+        )
+        token_response.raise_for_status()
+        token = token_response.json()["access_token"]
+
+    headers = {"Authorization": f"Bearer {token}"}
 metrics = []
 errors = []
 
@@ -273,22 +286,29 @@ for record in control_rows:
         extension=record["extension_archivo_destino"],
     )
     try:
-        content = download_sharepoint_content(
-            base_url=base_url,
-            record=record,
-            headers=headers,
-            http_get=requests.get,
-            auth_mode=sharepoint_auth_mode,
-            timeout=300,
-        )
         file_type = infer_file_type(record)
-        rows_read = count_rows_if_applicable(content, file_type)
-        write_bytes_to_path(spark, archivo_destino, content, dbutils=dbutils)
+        if is_databricks_file_path_mode(sharepoint_auth_mode):
+            source_path = build_databricks_source_path(sharepoint_connection_path, record)
+            dbutils.fs.cp(source_path, archivo_destino, True)
+            bytes_read = 0
+            rows_read = None
+        else:
+            content = download_sharepoint_content(
+                base_url=base_url,
+                record=record,
+                headers=headers,
+                http_get=requests.get,
+                auth_mode=sharepoint_auth_mode,
+                timeout=300,
+            )
+            bytes_read = len(content)
+            rows_read = count_rows_if_applicable(content, file_type)
+            write_bytes_to_path(spark, archivo_destino, content, dbutils=dbutils)
         metrics.append(
             metric_record(
                 archivo_origen=archivo_origen,
                 archivo_destino=archivo_destino,
-                bytes_read=len(content),
+                bytes_read=bytes_read,
                 rows_read=rows_read,
                 status="success",
             )
