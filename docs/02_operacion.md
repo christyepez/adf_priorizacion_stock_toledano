@@ -45,7 +45,33 @@ Si una key existe en el inventario del scope pero el notebook no puede leerla, v
 
 Las notificaciones estan desactivadas por defecto con `notification_enabled=false`, porque no existe una key de endpoint Logic App en la lista de secretos disponible. Para activarlas se debe crear la key del endpoint, asignarla a `notification_endpoint_secret` y cambiar `notification_enabled=true`.
 
-## 3.1 SharePoint directo
+## 3.1 Driver SAP HANA
+
+El driver JDBC SAP HANA queda versionado en el proyecto:
+
+```text
+lib/sap/ngdbc-2.28.7.jar
+```
+
+La ruta esperada por el bundle en DBFS es:
+
+```text
+dbfs:/FileStore/jars/sap/ngdbc-2.28.7.jar
+```
+
+Para instalarlo en el cluster `cl-toledano`, configurar `DATABRICKS_HOST` y `DATABRICKS_TOKEN` y ejecutar:
+
+```bash
+python scripts/install_sap_hana_driver_cluster.py --cluster-name cl-toledano --restart
+```
+
+Despues del reinicio, validar en un notebook:
+
+```python
+spark.sparkContext._jvm.java.lang.Class.forName("com.sap.db.jdbc.Driver")
+```
+
+## 3.2 SharePoint directo
 
 El modo operativo por defecto para este modelo es SharePoint directo:
 
@@ -56,7 +82,7 @@ sharepoint_base_url: https://pronaca365.sharepoint.com/
 
 En este modo el notebook obtiene token para el recurso SharePoint y descarga con REST API usando la ruta de ControlCargas: `RutaArchivoFuente` + `NombreArchivoFuente`. No usa Microsoft Graph.
 
-## 3.2 SharePoint con conexion Databricks
+## 3.3 SharePoint con conexion Databricks
 
 Si el workspace ya tiene SharePoint expuesto como ruta accesible por Databricks, usar:
 
