@@ -108,6 +108,7 @@ from priorizacion_stock_toledano.extraction.sharepoint_extractor import (
     count_rows_if_applicable,
     infer_file_type,
     metric_record,
+    oauth_scope_for_sharepoint,
     read_sharepoint_secret_values,
     reject_signed_or_secret_url,
     sharepoint_metrics_schema,
@@ -244,12 +245,13 @@ token = sp_secret_values.get("token")
 if not token:
     tenant_id = sp_secret_values["tenant_id"]
     token_url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
+    oauth_scope = oauth_scope_for_sharepoint(base_url, sharepoint_auth_mode)
     token_response = requests.post(
         token_url,
         data={
             "client_id": sp_secret_values["client_id"],
             "client_secret": sp_secret_values["client_secret"],
-            "scope": "https://graph.microsoft.com/.default",
+            "scope": oauth_scope,
             "grant_type": "client_credentials",
         },
         timeout=60,

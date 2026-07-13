@@ -8,6 +8,7 @@ from priorizacion_stock_toledano.extraction.sharepoint_extractor import (
     collect_paginated_graph_items,
     count_rows_if_applicable,
     infer_file_type,
+    oauth_scope_for_sharepoint,
     reject_signed_or_secret_url,
 )
 
@@ -30,6 +31,32 @@ def test_build_sharepoint_download_url_encodes_spaces():
     url = build_sharepoint_download_url("https://graph.microsoft.com/v1.0/", record)
 
     assert url == "https://graph.microsoft.com/v1.0/sites/portal/documentos%20compartidos/grupos%20priorizacion.xlsx"
+
+
+def test_build_sharepoint_download_url_uses_rest_api_for_sharepoint_host():
+    record = {
+        "ruta_archivo_fuente": "Toledano/asignacion_stock",
+        "nombre_archivo_fuente": "Grupos Priorización.xlsx",
+    }
+
+    url = build_sharepoint_download_url("https://pronaca365.sharepoint.com/", record)
+
+    assert (
+        url
+        == "https://pronaca365.sharepoint.com/_api/web/GetFileByServerRelativeUrl('/Toledano/asignacion_stock/Grupos%20Priorizaci%C3%B3n.xlsx')/$value"
+    )
+
+
+def test_oauth_scope_uses_sharepoint_resource_for_sharepoint_host():
+    scope = oauth_scope_for_sharepoint("https://pronaca365.sharepoint.com/", "graph_client_credentials")
+
+    assert scope == "https://pronaca365.sharepoint.com/.default"
+
+
+def test_oauth_scope_uses_graph_resource_for_graph_host():
+    scope = oauth_scope_for_sharepoint("https://graph.microsoft.com/v1.0/", "graph_client_credentials")
+
+    assert scope == "https://graph.microsoft.com/.default"
 
 
 def test_reject_signed_or_secret_url_blocks_sas_like_url():

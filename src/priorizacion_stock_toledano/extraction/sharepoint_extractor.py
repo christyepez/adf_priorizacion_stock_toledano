@@ -70,10 +70,47 @@ def build_source_file_name(record: Mapping[str, Any]) -> str:
     return f"{source_path}/{source_name}" if source_path else source_name
 
 
+def is_sharepoint_host(url: str) -> bool:
+    parsed = urlparse(url or "")
+    return parsed.hostname is not None and parsed.hostname.lower().endswith(".sharepoint.com")
+
+
+def oauth_scope_for_sharepoint(base_url: str, auth_mode: str) -> str:
+    parsed = urlparse(base_url or "")
+    mode = (auth_mode or "").strip().lower()
+    if not parsed.scheme or not parsed.netloc:
+        raise ValueError("sharepoint_base_url debe ser una URL absoluta HTTPS")
+
+    if is_sharepoint_host(base_url):
+        return f"{parsed.scheme}://{parsed.netloc}/.default"
+
+    if mode in {"sharepoint_client_credentials", "sharepoint"}:
+        return f"{parsed.scheme}://{parsed.netloc}/.default"
+
+    return "https://graph.microsoft.com/.default"
+
+
+def build_sharepoint_rest_download_url(base_url: str, record: Mapping[str, Any]) -> str:
+    parsed = urlparse(base_url or "")
+    if not parsed.scheme or not parsed.netloc:
+        raise ValueError("base_url SharePoint es obligatorio")
+    source_file = build_source_file_name(record).strip("/")
+    base_path = parsed.path.strip("/")
+    if base_path and not source_file.lower().startswith(base_path.lower() + "/"):
+        source_file = f"{base_path}/{source_file}"
+    server_relative_path = f"/{source_file}"
+    encoded_server_relative_path = quote(server_relative_path, safe="/")
+    url = f"{parsed.scheme}://{parsed.netloc}/_api/web/GetFileByServerRelativeUrl('{encoded_server_relative_path}')/$value"
+    reject_signed_or_secret_url(url)
+    return url
+
+
 def build_sharepoint_download_url(base_url: str, record: Mapping[str, Any]) -> str:
     if not base_url:
         raise ValueError("base_url SharePoint/Graph es obligatorio")
     reject_signed_or_secret_url(base_url)
+    if is_sharepoint_host(base_url):
+        return build_sharepoint_rest_download_url(base_url, record)
     source_file = build_source_file_name(record)
     encoded_path = "/".join(quote(part) for part in source_file.split("/"))
     url = urljoin(base_url.rstrip("/") + "/", encoded_path)
