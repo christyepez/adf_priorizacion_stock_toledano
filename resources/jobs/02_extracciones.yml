@@ -64,6 +64,7 @@ resources:
               sap_hana_username_secret: ${var.sap_hana_username_secret}
               sap_hana_password_secret: ${var.sap_hana_password_secret}
               sap_hana_driver: ${var.sap_hana_driver}
+              sap_hana_jdbc_jar: ${var.sap_hana_jdbc_jar}
               sap_hana_propietario_fuente: ${var.sap_hana_propietario_fuente}
 
     job_ext_sharepoint_priorizacion_stock:

@@ -76,6 +76,7 @@ define_text_widget(dbutils, "sap_hana_port_secret", "")
 define_text_widget(dbutils, "sap_hana_username_secret", "")
 define_text_widget(dbutils, "sap_hana_password_secret", "")
 define_text_widget(dbutils, "sap_hana_driver", "com.sap.db.jdbc.Driver")
+define_text_widget(dbutils, "sap_hana_jdbc_jar", "")
 define_text_widget(dbutils, "sap_hana_propietario_fuente", "VistasSapHana")
 define_text_widget(dbutils, "metrics_delta_table", "")
 
@@ -105,6 +106,7 @@ from priorizacion_stock_toledano.extraction.saphana_extractor import (
     metric_record,
     read_sap_secret_values,
     read_saphana_jdbc,
+    register_saphana_jdbc_jar,
     sap_metrics_schema,
     write_bronze,
 )
@@ -133,6 +135,7 @@ sql_control_trust_server_certificate = (
 )
 sap_hana_propietario_fuente = dbutils.widgets.get("sap_hana_propietario_fuente").strip() or "VistasSapHana"
 sap_hana_driver = dbutils.widgets.get("sap_hana_driver").strip() or "com.sap.db.jdbc.Driver"
+sap_hana_jdbc_jar = dbutils.widgets.get("sap_hana_jdbc_jar").strip()
 metrics_delta_table = dbutils.widgets.get("metrics_delta_table").strip()
 
 if not secret_scope.strip():
@@ -222,6 +225,7 @@ sap_secrets = read_sap_secret_values(
     ),
 )
 sap_url = hana_jdbc_url(sap_secrets["server"], sap_secrets.get("port"))
+register_saphana_jdbc_jar(spark, sap_hana_jdbc_jar)
 
 metrics = []
 errors = []

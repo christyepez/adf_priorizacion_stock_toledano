@@ -123,6 +123,19 @@ def read_sap_secret_values(dbutils: Any, secret_scope: str, secret_names: SapHan
     return values
 
 
+def register_saphana_jdbc_jar(spark: Any, jar_path: str | None) -> None:
+    clean_path = (jar_path or "").strip()
+    if not clean_path:
+        return
+    try:
+        spark.sparkContext._jsc.addJar(clean_path)
+    except AttributeError:
+        try:
+            spark._jsc.addJar(clean_path)
+        except AttributeError:
+            return
+
+
 def read_saphana_jdbc(
     spark: Any,
     *,
@@ -147,8 +160,10 @@ def read_saphana_jdbc(
         if "JDBC_DRIVER_NOT_FOUND" in message or "ClassNotFoundException" in message or driver in message:
             raise RuntimeError(
                 "No se encontro el driver JDBC de SAP HANA en el cluster Databricks. "
-                "Instala ngdbc.jar y configura la variable sap_hana_jdbc_jar del bundle, "
-                "por ejemplo dbfs:/FileStore/jars/sap/ngdbc.jar, o usa un cluster que ya tenga "
+                "Instala ngdbc.jar como libreria del cluster/job o configura sap_hana_jdbc_jar "
+                "apuntando a una ruta accesible, por ejemplo dbfs:/FileStore/jars/sap/ngdbc.jar. "
+                "Si ejecutas manualmente en un cluster existente, instala la libreria en el cluster "
+                "desde Compute > Libraries, o usa un job del bundle que adjunte la libreria. "
                 f"disponible la clase {driver}."
             ) from exc
         raise

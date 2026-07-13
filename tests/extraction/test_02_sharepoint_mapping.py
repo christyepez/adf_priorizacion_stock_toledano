@@ -68,6 +68,7 @@ def test_graph_site_file_candidates_from_control_path():
     }
 
     assert graph_site_file_candidates("https://pronaca365.sharepoint.com/", record) == [
+        ("/", "Toledano/asignacion_stock/Grupos Priorización.xlsx"),
         ("/sites/Toledano", "asignacion_stock/Grupos Priorización.xlsx"),
         ("/Toledano", "asignacion_stock/Grupos Priorización.xlsx"),
     ]
@@ -91,9 +92,9 @@ def test_download_sharepoint_content_uses_graph_candidates():
 
     def fake_get(url, **kwargs):
         calls.append(url)
-        if "/sites/pronaca365.sharepoint.com:/sites/Toledano" in url:
+        if "/sites/pronaca365.sharepoint.com:/" in url:
             return Response(payload={"id": "site-id"})
-        if "/sites/site-id/drive/root:/asignacion_stock/Grupos%20Priorizaci%C3%B3n.xlsx:/content" in url:
+        if "/sites/site-id/drive/root:/Toledano/asignacion_stock/Grupos%20Priorizaci%C3%B3n.xlsx:/content" in url:
             return Response(content=b"file-content")
         return Response(status_code=404)
 

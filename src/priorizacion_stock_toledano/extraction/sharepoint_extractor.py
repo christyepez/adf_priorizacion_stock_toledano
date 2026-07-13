@@ -131,6 +131,9 @@ def graph_site_file_candidates(base_url: str, record: Mapping[str, Any]) -> list
     base_parts = [part for part in parsed.path.strip("/").split("/") if part]
     candidates: list[tuple[str, str]] = []
 
+    if source_file:
+        candidates.append(("/", source_file))
+
     if base_parts:
         site_path = "/" + "/".join(base_parts)
         file_path = source_file
