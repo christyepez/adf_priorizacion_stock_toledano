@@ -103,9 +103,9 @@ from priorizacion_stock_toledano.extraction.sharepoint_extractor import (
     SharePointSecretNames,
     assert_https_url,
     build_bronze_path,
-    build_sharepoint_download_url,
     build_source_file_name,
     count_rows_if_applicable,
+    download_sharepoint_content,
     infer_file_type,
     metric_record,
     oauth_scope_for_sharepoint,
@@ -273,10 +273,14 @@ for record in control_rows:
         extension=record["extension_archivo_destino"],
     )
     try:
-        download_url = build_sharepoint_download_url(base_url, record)
-        response = requests.get(download_url, headers=headers, timeout=300)
-        response.raise_for_status()
-        content = response.content
+        content = download_sharepoint_content(
+            base_url=base_url,
+            record=record,
+            headers=headers,
+            http_get=requests.get,
+            auth_mode=sharepoint_auth_mode,
+            timeout=300,
+        )
         file_type = infer_file_type(record)
         rows_read = count_rows_if_applicable(content, file_type)
         write_bytes_to_path(spark, archivo_destino, content, dbutils=dbutils)

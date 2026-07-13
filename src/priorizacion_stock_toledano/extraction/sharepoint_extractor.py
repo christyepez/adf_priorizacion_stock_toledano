@@ -81,6 +81,9 @@ def oauth_scope_for_sharepoint(base_url: str, auth_mode: str) -> str:
     if not parsed.scheme or not parsed.netloc:
         raise ValueError("sharepoint_base_url debe ser una URL absoluta HTTPS")
 
+    if mode in {"graph_client_credentials", "graph"}:
+        return "https://graph.microsoft.com/.default"
+
     if is_sharepoint_host(base_url):
         return f"{parsed.scheme}://{parsed.netloc}/.default"
 
@@ -116,6 +119,89 @@ def build_sharepoint_download_url(base_url: str, record: Mapping[str, Any]) -> s
     url = urljoin(base_url.rstrip("/") + "/", encoded_path)
     reject_signed_or_secret_url(url)
     return url
+
+
+def graph_site_file_candidates(base_url: str, record: Mapping[str, Any]) -> list[tuple[str, str]]:
+    parsed = urlparse(base_url or "")
+    if not parsed.hostname:
+        raise ValueError("sharepoint_base_url debe incluir host para usar Graph")
+
+    source_file = build_source_file_name(record).strip("/")
+    source_parts = [part for part in source_file.split("/") if part]
+    base_parts = [part for part in parsed.path.strip("/").split("/") if part]
+    candidates: list[tuple[str, str]] = []
+
+    if base_parts:
+        site_path = "/" + "/".join(base_parts)
+        file_path = source_file
+        if source_file.lower().startswith("/".join(base_parts).lower() + "/"):
+            file_path = "/".join(source_parts[len(base_parts) :])
+        candidates.append((site_path, file_path))
+
+    if source_parts:
+        site_name = source_parts[0]
+        file_path = "/".join(source_parts[1:])
+        candidates.append((f"/sites/{site_name}", file_path))
+        candidates.append((f"/{site_name}", file_path))
+
+    unique_candidates: list[tuple[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for site_path, file_path in candidates:
+        normalized = (site_path.strip(), file_path.strip("/"))
+        if normalized[0] and normalized[1] and normalized not in seen:
+            unique_candidates.append(normalized)
+            seen.add(normalized)
+    return unique_candidates
+
+
+def _graph_site_lookup_url(hostname: str, site_path: str) -> str:
+    encoded_site_path = quote(site_path, safe="/")
+    return f"https://graph.microsoft.com/v1.0/sites/{hostname}:{encoded_site_path}"
+
+
+def _graph_file_content_url(site_id: str, file_path: str) -> str:
+    encoded_file_path = quote(file_path.strip("/"), safe="/")
+    return f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/root:/{encoded_file_path}:/content"
+
+
+def download_sharepoint_content(
+    *,
+    base_url: str,
+    record: Mapping[str, Any],
+    headers: Mapping[str, str],
+    http_get: Callable[..., Any],
+    auth_mode: str = "graph_client_credentials",
+    timeout: int = 300,
+) -> bytes:
+    mode = (auth_mode or "").strip().lower()
+    if mode in {"graph_client_credentials", "graph"}:
+        parsed = urlparse(base_url or "")
+        hostname = parsed.hostname
+        if not hostname:
+            raise ValueError("sharepoint_base_url debe incluir host para usar Graph")
+        errors: list[str] = []
+        for site_path, file_path in graph_site_file_candidates(base_url, record):
+            site_url = _graph_site_lookup_url(hostname, site_path)
+            try:
+                site_response = http_get(site_url, headers=headers, timeout=timeout)
+                site_response.raise_for_status()
+                site_id = site_response.json()["id"]
+                content_url = _graph_file_content_url(site_id, file_path)
+                content_response = http_get(content_url, headers=headers, timeout=timeout)
+                content_response.raise_for_status()
+                return content_response.content
+            except Exception as exc:
+                errors.append(f"{site_path}/{file_path}: {exc}")
+        raise RuntimeError(
+            "No se pudo descargar el archivo desde SharePoint usando Microsoft Graph. "
+            "Valida permisos Graph del App Registration y la ruta del archivo. Intentos: "
+            + " | ".join(errors)
+        )
+
+    download_url = build_sharepoint_download_url(base_url, record)
+    response = http_get(download_url, headers=headers, timeout=timeout)
+    response.raise_for_status()
+    return response.content
 
 
 def infer_file_type(record: Mapping[str, Any]) -> str:
