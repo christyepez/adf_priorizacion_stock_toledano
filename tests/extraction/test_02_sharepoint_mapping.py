@@ -8,6 +8,7 @@ from priorizacion_stock_toledano.extraction.sharepoint_extractor import (
     collect_paginated_graph_items,
     count_rows_if_applicable,
     download_sharepoint_content,
+    graph_drive_file_candidates,
     graph_site_file_candidates,
     infer_file_type,
     oauth_scope_for_sharepoint,
@@ -74,6 +75,17 @@ def test_graph_site_file_candidates_from_control_path():
     ]
 
 
+def test_graph_drive_file_candidates_from_document_library_path():
+    record = {
+        "ruta_archivo_fuente": "Toledano/asignacion_stock",
+        "nombre_archivo_fuente": "Grupos Priorización.xlsx",
+    }
+
+    assert graph_drive_file_candidates(record) == [
+        ("Toledano", "asignacion_stock/Grupos Priorización.xlsx")
+    ]
+
+
 def test_download_sharepoint_content_uses_graph_candidates():
     class Response:
         def __init__(self, *, payload=None, content=b"", status_code=200):
@@ -113,6 +125,51 @@ def test_download_sharepoint_content_uses_graph_candidates():
 
     assert content == b"file-content"
     assert len(calls) == 2
+
+
+def test_download_sharepoint_content_falls_back_to_matching_drive():
+    class Response:
+        def __init__(self, *, payload=None, content=b"", status_code=200):
+            self._payload = payload or {}
+            self.content = content
+            self.status_code = status_code
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise RuntimeError(f"{self.status_code} error")
+
+        def json(self):
+            return self._payload
+
+    calls = []
+
+    def fake_get(url, **kwargs):
+        calls.append(url)
+        if "/sites/pronaca365.sharepoint.com:/" in url:
+            return Response(payload={"id": "site-id"})
+        if "/sites/site-id/drive/root:/Toledano/asignacion_stock/Grupos%20Priorizaci%C3%B3n.xlsx:/content" in url:
+            return Response(status_code=404)
+        if "/sites/site-id/drives" in url:
+            return Response(payload={"value": [{"id": "drive-id", "name": "Toledano"}]})
+        if "/drives/drive-id/root:/asignacion_stock/Grupos%20Priorizaci%C3%B3n.xlsx:/content" in url:
+            return Response(content=b"file-content")
+        return Response(status_code=404)
+
+    record = {
+        "ruta_archivo_fuente": "Toledano/asignacion_stock",
+        "nombre_archivo_fuente": "Grupos Priorización.xlsx",
+    }
+
+    content = download_sharepoint_content(
+        base_url="https://pronaca365.sharepoint.com/",
+        record=record,
+        headers={"Authorization": "Bearer token"},
+        http_get=fake_get,
+        auth_mode="graph_client_credentials",
+    )
+
+    assert content == b"file-content"
+    assert any("/sites/site-id/drives" in call for call in calls)
 
 
 def test_reject_signed_or_secret_url_blocks_sas_like_url():

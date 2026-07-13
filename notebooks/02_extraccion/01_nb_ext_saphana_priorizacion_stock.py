@@ -76,7 +76,7 @@ define_text_widget(dbutils, "sap_hana_port_secret", "")
 define_text_widget(dbutils, "sap_hana_username_secret", "")
 define_text_widget(dbutils, "sap_hana_password_secret", "")
 define_text_widget(dbutils, "sap_hana_driver", "com.sap.db.jdbc.Driver")
-define_text_widget(dbutils, "sap_hana_jdbc_jar", "")
+define_text_widget(dbutils, "sap_hana_jdbc_jar", "dbfs:/FileStore/jars/sap/ngdbc.jar")
 define_text_widget(dbutils, "sap_hana_propietario_fuente", "VistasSapHana")
 define_text_widget(dbutils, "metrics_delta_table", "")
 

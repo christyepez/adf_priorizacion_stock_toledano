@@ -167,6 +167,34 @@ def _graph_file_content_url(site_id: str, file_path: str) -> str:
     return f"https://graph.microsoft.com/v1.0/sites/{site_id}/drive/root:/{encoded_file_path}:/content"
 
 
+def _graph_drives_url(site_id: str) -> str:
+    return f"https://graph.microsoft.com/v1.0/sites/{site_id}/drives"
+
+
+def _graph_drive_file_content_url(drive_id: str, file_path: str) -> str:
+    encoded_file_path = quote(file_path.strip("/"), safe="/")
+    return f"https://graph.microsoft.com/v1.0/drives/{drive_id}/root:/{encoded_file_path}:/content"
+
+
+def graph_drive_file_candidates(record: Mapping[str, Any]) -> list[tuple[str, str]]:
+    source_file = build_source_file_name(record).strip("/")
+    source_parts = [part for part in source_file.split("/") if part]
+    if len(source_parts) < 2:
+        return []
+    drive_name = source_parts[0]
+    file_path = "/".join(source_parts[1:])
+    return [(drive_name, file_path)]
+
+
+def _drive_matches_name(drive: Mapping[str, Any], expected_name: str) -> bool:
+    expected = (expected_name or "").strip().lower()
+    if not expected:
+        return False
+    name = str(drive.get("name") or "").strip().lower()
+    web_url = str(drive.get("webUrl") or "").strip().lower()
+    return name == expected or web_url.rstrip("/").endswith("/" + expected)
+
+
 def download_sharepoint_content(
     *,
     base_url: str,
@@ -183,18 +211,42 @@ def download_sharepoint_content(
         if not hostname:
             raise ValueError("sharepoint_base_url debe incluir host para usar Graph")
         errors: list[str] = []
+        resolved_sites: list[tuple[str, str]] = []
         for site_path, file_path in graph_site_file_candidates(base_url, record):
             site_url = _graph_site_lookup_url(hostname, site_path)
             try:
                 site_response = http_get(site_url, headers=headers, timeout=timeout)
                 site_response.raise_for_status()
                 site_id = site_response.json()["id"]
+                resolved_sites.append((site_path, site_id))
                 content_url = _graph_file_content_url(site_id, file_path)
                 content_response = http_get(content_url, headers=headers, timeout=timeout)
                 content_response.raise_for_status()
                 return content_response.content
             except Exception as exc:
                 errors.append(f"{site_path}/{file_path}: {exc}")
+
+        for site_path, site_id in resolved_sites:
+            for drive_name, file_path in graph_drive_file_candidates(record):
+                try:
+                    drives_response = http_get(_graph_drives_url(site_id), headers=headers, timeout=timeout)
+                    drives_response.raise_for_status()
+                    drives = drives_response.json().get("value", [])
+                    matching_drives = [drive for drive in drives if _drive_matches_name(drive, drive_name)]
+                    if not matching_drives:
+                        raise RuntimeError(f"No existe drive/biblioteca {drive_name!r} en el sitio {site_path}")
+                    for drive in matching_drives:
+                        drive_id = drive["id"]
+                        content_response = http_get(
+                            _graph_drive_file_content_url(drive_id, file_path),
+                            headers=headers,
+                            timeout=timeout,
+                        )
+                        content_response.raise_for_status()
+                        return content_response.content
+                except Exception as exc:
+                    errors.append(f"{site_path} drive {drive_name}/{file_path}: {exc}")
+
         raise RuntimeError(
             "No se pudo descargar el archivo desde SharePoint usando Microsoft Graph. "
             "Valida permisos Graph del App Registration y la ruta del archivo. Intentos: "
