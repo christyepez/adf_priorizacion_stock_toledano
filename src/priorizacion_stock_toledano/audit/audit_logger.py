@@ -8,6 +8,26 @@ from uuid import uuid4
 
 AUDIT_STATUSES = {"STARTED", "SUCCEEDED", "FAILED", "WARNING"}
 DEFAULT_AUDIT_TABLE = "audit_pipeline_events"
+AUDIT_COLUMNS = [
+    "event_id",
+    "timestamp",
+    "ambiente",
+    "process",
+    "run_id",
+    "status",
+    "name",
+    "message",
+    "task",
+    "source_system",
+    "execution_id",
+    "details_json",
+]
+
+
+def audit_event_schema() -> Any:
+    from pyspark.sql.types import StringType, StructField, StructType
+
+    return StructType([StructField(column, StringType(), True) for column in AUDIT_COLUMNS])
 
 
 @dataclass(frozen=True)
@@ -81,7 +101,7 @@ def build_audit_event(
 
 
 def append_audit_event(spark: Any, event: AuditEvent, audit_table: str) -> None:
-    df_event = spark.createDataFrame([event.as_dict()])
+    df_event = spark.createDataFrame([event.as_dict()], schema=audit_event_schema()).select(*AUDIT_COLUMNS)
     (
         df_event.write.format("delta")
         .mode("append")

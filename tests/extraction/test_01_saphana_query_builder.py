@@ -1,6 +1,7 @@
 import unittest
 
 from priorizacion_stock_toledano.extraction.saphana_extractor import (
+    SAP_METRICS_COLUMNS,
     build_bronze_path,
     build_saphana_query,
     choose_output_format,
@@ -83,3 +84,17 @@ def test_hana_jdbc_url_uses_default_port_and_no_credentials():
     assert url == "jdbc:sap://hana.example.local:30015"
     assert "password" not in url.lower()
     assert "user" not in url.lower()
+
+
+def test_sap_metrics_columns_are_stable():
+    assert SAP_METRICS_COLUMNS == [
+        "process_name",
+        "sistema_fuente",
+        "source_object",
+        "target_path",
+        "rows_read",
+        "rows_written",
+        "status",
+        "error_message",
+        "metric_timestamp_utc",
+    ]

@@ -25,6 +25,25 @@ QUALITY_COLUMNS = [
 ]
 
 
+def quality_results_schema() -> Any:
+    from pyspark.sql.types import LongType, StringType, StructField, StructType
+
+    return StructType(
+        [
+            StructField("execution_id", StringType(), True),
+            StructField("ambiente", StringType(), True),
+            StructField("proceso", StringType(), True),
+            StructField("tabla", StringType(), True),
+            StructField("regla", StringType(), True),
+            StructField("resultado", StringType(), True),
+            StructField("cantidad_errores", LongType(), True),
+            StructField("severidad", StringType(), True),
+            StructField("mensaje", StringType(), True),
+            StructField("timestamp", StringType(), True),
+        ]
+    )
+
+
 @dataclass(frozen=True)
 class QualityResult:
     execution_id: str
@@ -306,7 +325,7 @@ def append_quality_results(spark: Any, results: list[QualityResult], quality_tab
     if not results:
         return
     rows = [result.as_dict() for result in results]
-    df_results = spark.createDataFrame(rows).select(*QUALITY_COLUMNS)
+    df_results = spark.createDataFrame(rows, schema=quality_results_schema()).select(*QUALITY_COLUMNS)
     (
         df_results.write.format("delta")
         .mode("append")

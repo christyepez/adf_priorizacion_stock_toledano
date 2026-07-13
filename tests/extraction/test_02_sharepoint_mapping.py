@@ -1,6 +1,7 @@
 import unittest
 
 from priorizacion_stock_toledano.extraction.sharepoint_extractor import (
+    SHAREPOINT_METRICS_COLUMNS,
     build_bronze_path,
     build_sharepoint_download_url,
     build_source_file_name,
@@ -72,3 +73,15 @@ def test_collect_paginated_graph_items_follows_next_link():
     items = collect_paginated_graph_items("https://graph.test/page1", lambda url: pages[url])
 
     assert items == [{"id": "1"}, {"id": "2"}]
+
+
+def test_sharepoint_metrics_columns_are_stable():
+    assert SHAREPOINT_METRICS_COLUMNS == [
+        "archivo_origen",
+        "archivo_destino",
+        "bytes_read",
+        "rows_read",
+        "status",
+        "error_message",
+        "metric_timestamp_utc",
+    ]

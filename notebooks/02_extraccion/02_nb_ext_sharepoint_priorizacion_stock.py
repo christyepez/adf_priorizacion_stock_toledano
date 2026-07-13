@@ -110,6 +110,7 @@ from priorizacion_stock_toledano.extraction.sharepoint_extractor import (
     metric_record,
     read_sharepoint_secret_values,
     reject_signed_or_secret_url,
+    sharepoint_metrics_schema,
     write_bytes_to_path,
 )
 
@@ -301,7 +302,7 @@ for record in control_rows:
         if fail_fast:
             break
 
-df_metrics = spark.createDataFrame(metrics)
+df_metrics = spark.createDataFrame(metrics, schema=sharepoint_metrics_schema())
 df_metrics.createOrReplaceTempView(SHAREPOINT_METRICS_VIEW_NAME)
 
 if metrics_delta_table:

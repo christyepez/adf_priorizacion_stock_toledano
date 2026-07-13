@@ -7,6 +7,17 @@ from typing import Any, Mapping
 
 SAP_METRICS_VIEW_NAME = "vw_metrics_ext_saphana_priorizacion_stock"
 SAP_SOURCE_SYSTEM = "SapHana"
+SAP_METRICS_COLUMNS = [
+    "process_name",
+    "sistema_fuente",
+    "source_object",
+    "target_path",
+    "rows_read",
+    "rows_written",
+    "status",
+    "error_message",
+    "metric_timestamp_utc",
+]
 
 
 @dataclass(frozen=True)
@@ -182,3 +193,21 @@ def metric_record(
         "error_message": error_message,
         "metric_timestamp_utc": datetime.now(timezone.utc).isoformat(),
     }
+
+
+def sap_metrics_schema() -> Any:
+    from pyspark.sql.types import IntegerType, StringType, StructField, StructType
+
+    return StructType(
+        [
+            StructField("process_name", StringType(), True),
+            StructField("sistema_fuente", StringType(), True),
+            StructField("source_object", StringType(), True),
+            StructField("target_path", StringType(), True),
+            StructField("rows_read", IntegerType(), True),
+            StructField("rows_written", IntegerType(), True),
+            StructField("status", StringType(), True),
+            StructField("error_message", StringType(), True),
+            StructField("metric_timestamp_utc", StringType(), True),
+        ]
+    )

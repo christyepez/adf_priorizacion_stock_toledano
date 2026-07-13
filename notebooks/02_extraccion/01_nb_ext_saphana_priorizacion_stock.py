@@ -105,6 +105,7 @@ from priorizacion_stock_toledano.extraction.saphana_extractor import (
     metric_record,
     read_sap_secret_values,
     read_saphana_jdbc,
+    sap_metrics_schema,
     write_bronze,
 )
 
@@ -285,7 +286,7 @@ for record in control_rows:
         if fail_fast:
             break
 
-df_metrics = spark.createDataFrame(metrics)
+df_metrics = spark.createDataFrame(metrics, schema=sap_metrics_schema())
 df_metrics.createOrReplaceTempView(SAP_METRICS_VIEW_NAME)
 
 if metrics_delta_table:

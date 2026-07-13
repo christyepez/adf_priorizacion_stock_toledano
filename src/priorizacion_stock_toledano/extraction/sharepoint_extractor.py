@@ -11,6 +11,15 @@ from urllib.parse import parse_qsl, quote, urljoin, urlparse
 SHAREPOINT_METRICS_VIEW_NAME = "vw_metrics_ext_sharepoint_priorizacion_stock"
 SHAREPOINT_SOURCE_SYSTEM = "sharepoint"
 SENSITIVE_QUERY_KEYS = {"sig", "token", "access_token", "client_secret", "sharedaccesssignature"}
+SHAREPOINT_METRICS_COLUMNS = [
+    "archivo_origen",
+    "archivo_destino",
+    "bytes_read",
+    "rows_read",
+    "status",
+    "error_message",
+    "metric_timestamp_utc",
+]
 
 
 @dataclass(frozen=True)
@@ -111,6 +120,22 @@ def metric_record(
         "error_message": error_message,
         "metric_timestamp_utc": datetime.now(timezone.utc).isoformat(),
     }
+
+
+def sharepoint_metrics_schema() -> Any:
+    from pyspark.sql.types import LongType, StringType, StructField, StructType
+
+    return StructType(
+        [
+            StructField("archivo_origen", StringType(), True),
+            StructField("archivo_destino", StringType(), True),
+            StructField("bytes_read", LongType(), True),
+            StructField("rows_read", LongType(), True),
+            StructField("status", StringType(), True),
+            StructField("error_message", StringType(), True),
+            StructField("metric_timestamp_utc", StringType(), True),
+        ]
+    )
 
 
 def collect_paginated_graph_items(
