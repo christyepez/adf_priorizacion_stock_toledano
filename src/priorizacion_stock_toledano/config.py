@@ -61,7 +61,7 @@ DEFAULT_WIDGET_VALUES = {
     "sap_hana_driver": "com.sap.db.jdbc.Driver",
     "sap_hana_propietario_fuente": "VistasSapHana",
     "sharepoint_base_url": "https://pronaca365.sharepoint.com/",
-    "sharepoint_auth_mode": "sharepoint_client_credentials",
+    "sharepoint_auth_mode": "graph_client_credentials",
     "sharepoint_connection_path": "",
     "sharepoint_token_secret": "",
     "sharepoint_client_id_secret": "sc-sharepoint-client-id",

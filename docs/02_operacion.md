@@ -82,16 +82,22 @@ Despues del reinicio, validar en un notebook:
 spark.sparkContext._jvm.java.lang.Class.forName("com.sap.db.jdbc.Driver")
 ```
 
-## 3.2 SharePoint directo
+## 3.2 SharePoint con Microsoft Graph
 
-El modo operativo por defecto para este modelo es SharePoint directo:
+El modo operativo por defecto para este modelo es Microsoft Graph:
 
 ```yaml
-sharepoint_auth_mode: sharepoint_client_credentials
+sharepoint_auth_mode: graph_client_credentials
 sharepoint_base_url: https://pronaca365.sharepoint.com/
 ```
 
-En este modo el notebook obtiene token para el recurso SharePoint y descarga con REST API usando la ruta de ControlCargas: `RutaArchivoFuente` + `NombreArchivoFuente`. No usa Microsoft Graph.
+En este modo el notebook obtiene token para `https://graph.microsoft.com/.default`, resuelve el sitio/drive y descarga usando la ruta de ControlCargas: `RutaArchivoFuente` + `NombreArchivoFuente`.
+
+Si se requiere usar SharePoint REST directo, configurar:
+
+```yaml
+sharepoint_auth_mode: sharepoint_client_credentials
+```
 
 ## 3.3 SharePoint con conexion Databricks
 
@@ -204,7 +210,7 @@ El modo configurado en jobs es `truncate_insert`.
 |---|---|
 | Falla control de cargas | Validar Secret Scope SQL control y salida de `conf.GetControlCargas` |
 | Falla SAP HANA | Revisar driver, secretos SAP y query generada por objeto |
-| Falla SharePoint | Revisar secretos OAuth/token, permisos SharePoint directos y ruta devuelta por ControlCargas |
+| Falla SharePoint | Revisar secretos OAuth/token, permisos Graph/SharePoint y ruta devuelta por ControlCargas |
 | Falla Bronze to Silver | Revisar columnas obligatorias y cambios de schema |
 | Falla modelo | Revisar disponibilidad de tablas Silver y columnas del modelo |
 | Falla calidad | Consultar `quality_results` por `execution_id` |

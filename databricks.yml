@@ -226,8 +226,8 @@ variables:
     default: https://pronaca365.sharepoint.com/
 
   sharepoint_auth_mode:
-    description: Modo de autenticacion SharePoint. Valores operativos: sharepoint_client_credentials o databricks_path. No usar Graph para este modelo.
-    default: sharepoint_client_credentials
+    description: Modo de autenticacion SharePoint. Valores operativos: graph_client_credentials, sharepoint_client_credentials o databricks_path.
+    default: graph_client_credentials
 
   sharepoint_connection_path:
     description: Ruta Databricks ya autenticada para SharePoint cuando sharepoint_auth_mode=databricks_path. Ejemplos: /Volumes/catalog/schema/volume o dbfs:/mnt/sharepoint.
@@ -339,7 +339,7 @@ targets:
       sap_hana_jdbc_maven: com.sap.cloud.db.jdbc:ngdbc:2.28.7
       sap_hana_propietario_fuente: VistasSapHana
       sharepoint_base_url: https://pronaca365.sharepoint.com/
-      sharepoint_auth_mode: sharepoint_client_credentials
+      sharepoint_auth_mode: graph_client_credentials
       sharepoint_connection_path: ""
       sharepoint_token_secret: ""
       sharepoint_client_id_secret: sc-sharepoint-client-id
@@ -412,7 +412,7 @@ targets:
       sap_hana_jdbc_maven: com.sap.cloud.db.jdbc:ngdbc:2.28.7
       sap_hana_propietario_fuente: VistasSapHana
       sharepoint_base_url: https://pronaca365.sharepoint.com/
-      sharepoint_auth_mode: sharepoint_client_credentials
+      sharepoint_auth_mode: graph_client_credentials
       sharepoint_connection_path: ""
       sharepoint_token_secret: ""
       sharepoint_client_id_secret: sc-sharepoint-client-id
@@ -485,7 +485,7 @@ targets:
       sap_hana_jdbc_maven: com.sap.cloud.db.jdbc:ngdbc:2.28.7
       sap_hana_propietario_fuente: VistasSapHana
       sharepoint_base_url: https://pronaca365.sharepoint.com/
-      sharepoint_auth_mode: sharepoint_client_credentials
+      sharepoint_auth_mode: graph_client_credentials
       sharepoint_connection_path: ""
       sharepoint_token_secret: ""
       sharepoint_client_id_secret: sc-sharepoint-client-id
