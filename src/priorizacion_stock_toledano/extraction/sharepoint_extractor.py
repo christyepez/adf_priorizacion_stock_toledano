@@ -126,13 +126,29 @@ def is_databricks_file_path_mode(auth_mode: str) -> bool:
     return (auth_mode or "").strip().lower() in FILE_PATH_AUTH_MODES
 
 
+def is_absolute_databricks_path(path: str) -> bool:
+    clean = (path or "").strip()
+    lowered = clean.lower()
+    return lowered.startswith(("dbfs:/", "abfss://", "s3://", "wasbs://")) or clean.startswith(
+        ("/Volumes/", "/mnt/", "/dbfs/")
+    )
+
+
 def build_databricks_source_path(base_path: str, record: Mapping[str, Any]) -> str:
+    raw_source_path = _required(record, "ruta_archivo_fuente").strip()
+    source_name = _required(record, "nombre_archivo_fuente")
+    if is_absolute_databricks_path(raw_source_path):
+        source_file = f"{raw_source_path.rstrip('/')}/{source_name}"
+    else:
+        source_file = build_source_file_name(record)
+    if not source_file:
+        raise ValueError("Ruta de archivo SharePoint vacia")
+    if is_absolute_databricks_path(source_file):
+        return source_file
     clean_base = (base_path or "").strip().rstrip("/")
     if not clean_base:
         raise ValueError("sharepoint_connection_path es obligatorio para modo databricks_path")
-    source_file = build_source_file_name(record).strip("/")
-    if not source_file:
-        raise ValueError("Ruta de archivo SharePoint vacia")
+    source_file = source_file.strip("/")
     return f"{clean_base}/{source_file}"
 
 

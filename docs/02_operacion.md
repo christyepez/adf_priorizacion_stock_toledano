@@ -56,6 +56,8 @@ sharepoint_connection_path: /Volumes/<catalog>/<schema>/<volume>
 
 Tambien se soportan rutas tipo `dbfs:/mnt/sharepoint`. En este modo el notebook no solicita token OAuth ni llama a Graph; copia directamente desde `sharepoint_connection_path/RutaArchivoFuente/NombreArchivoFuente` hacia Bronze usando `dbutils.fs.cp`.
 
+La ruta de cada archivo siempre se arma con la respuesta de ControlCargas: `RutaArchivoFuente` + `NombreArchivoFuente`. Si `RutaArchivoFuente` ya viene como ruta absoluta Databricks, por ejemplo `/Volumes/...`, `dbfs:/...` o `abfss://...`, el notebook usa esa ruta tal cual y no antepone `sharepoint_connection_path`.
+
 ## 4. Ejecucion por ambiente
 
 Validar el bundle:

@@ -12,6 +12,7 @@ from priorizacion_stock_toledano.extraction.sharepoint_extractor import (
     graph_drive_file_candidates,
     graph_site_file_candidates,
     infer_file_type,
+    is_absolute_databricks_path,
     is_databricks_file_path_mode,
     oauth_scope_for_sharepoint,
     reject_signed_or_secret_url,
@@ -63,10 +64,28 @@ def test_build_databricks_source_path_uses_connection_base_path():
     assert path == "/Volumes/ext/sharepoint/raw/Toledano/asignacion_stock/Grupos Priorización.xlsx"
 
 
+def test_build_databricks_source_path_keeps_absolute_control_path():
+    record = {
+        "ruta_archivo_fuente": "/Volumes/ext/sharepoint/raw/Toledano/asignacion_stock",
+        "nombre_archivo_fuente": "Grupos Priorización.xlsx",
+    }
+
+    path = build_databricks_source_path("", record)
+
+    assert path == "/Volumes/ext/sharepoint/raw/Toledano/asignacion_stock/Grupos Priorización.xlsx"
+
+
 def test_databricks_path_auth_mode_is_supported():
     assert is_databricks_file_path_mode("databricks_path")
     assert is_databricks_file_path_mode("databricks_volume")
     assert not is_databricks_file_path_mode("graph_client_credentials")
+
+
+def test_absolute_databricks_path_detection():
+    assert is_absolute_databricks_path("/Volumes/ext/sharepoint/raw/file.xlsx")
+    assert is_absolute_databricks_path("dbfs:/mnt/sharepoint/file.xlsx")
+    assert is_absolute_databricks_path("abfss://raw@storage.dfs.core.windows.net/file.xlsx")
+    assert not is_absolute_databricks_path("Toledano/asignacion_stock/file.xlsx")
 
 
 def test_oauth_scope_uses_sharepoint_resource_for_sharepoint_host():

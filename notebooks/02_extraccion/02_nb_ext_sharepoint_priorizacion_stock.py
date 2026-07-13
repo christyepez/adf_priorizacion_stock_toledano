@@ -109,6 +109,7 @@ from priorizacion_stock_toledano.extraction.sharepoint_extractor import (
     count_rows_if_applicable,
     download_sharepoint_content,
     infer_file_type,
+    is_absolute_databricks_path,
     is_databricks_file_path_mode,
     metric_record,
     oauth_scope_for_sharepoint,
@@ -164,13 +165,6 @@ if not sharepoint_base_url and not is_databricks_file_path_mode(sharepoint_auth_
     raise ValueError(
         "sharepoint_base_url es obligatorio. Ejecuta el notebook desde el Databricks Job/Bundle "
         "o configura una URL base publica sin firmas ni tokens."
-    )
-
-if is_databricks_file_path_mode(sharepoint_auth_mode) and not sharepoint_connection_path:
-    raise ValueError(
-        "sharepoint_connection_path es obligatorio cuando sharepoint_auth_mode usa databricks_path. "
-        "Configura una ruta accesible por Databricks, por ejemplo /Volumes/catalog/schema/volume "
-        "o dbfs:/mnt/sharepoint."
     )
 
 if sql_control_read_mode == "spark_sql":
@@ -237,6 +231,18 @@ if not control_rows:
     raise ValueError(
         f"No existen registros activos de control para PropietarioFuente={sharepoint_propietario_fuente}"
     )
+
+if is_databricks_file_path_mode(sharepoint_auth_mode) and not sharepoint_connection_path:
+    has_absolute_control_path = any(
+        is_absolute_databricks_path(build_source_file_name(record)) for record in control_rows
+    )
+    if not has_absolute_control_path:
+        raise ValueError(
+            "sharepoint_connection_path es obligatorio cuando sharepoint_auth_mode usa databricks_path "
+            "y ControlCargas no devuelve rutas absolutas. Configura una ruta base accesible por Databricks, "
+            "por ejemplo /Volumes/catalog/schema/volume o dbfs:/mnt/sharepoint. La ruta final se arma con "
+            "RutaArchivoFuente y NombreArchivoFuente del control."
+        )
 
 headers = {}
 base_url = sharepoint_base_url
