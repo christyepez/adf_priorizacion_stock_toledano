@@ -33,7 +33,8 @@ resources:
         - task_key: ext_saphana_priorizacion_stock
           job_cluster_key: ${var.job_cluster_key}
           libraries:
-            - jar: ${var.sap_hana_jdbc_jar}
+            - maven:
+                coordinates: ${var.sap_hana_jdbc_maven}
           notebook_task:
             notebook_path: ../../notebooks/02_extraccion/01_nb_ext_saphana_priorizacion_stock.py
             base_parameters:

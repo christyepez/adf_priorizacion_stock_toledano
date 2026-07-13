@@ -47,7 +47,18 @@ Las notificaciones estan desactivadas por defecto con `notification_enabled=fals
 
 ## 3.1 Driver SAP HANA
 
-El driver JDBC SAP HANA queda versionado en el proyecto:
+El driver JDBC SAP HANA debe instalarse como libreria Java. No debe instalarse como PyPI.
+
+Opcion recomendada en Databricks:
+
+```text
+Compute > cl-toledano > Libraries > Install new > Maven
+Coordinates: com.sap.cloud.db.jdbc:ngdbc:2.28.7
+```
+
+Si se instala como PyPI, Databricks no carga la clase JDBC `com.sap.db.jdbc.Driver` y la extraccion SAP falla con `ClassNotFoundException`.
+
+Como alternativa, el driver queda versionado en el proyecto:
 
 ```text
 lib/sap/ngdbc-2.28.7.jar

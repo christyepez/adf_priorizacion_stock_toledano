@@ -210,8 +210,12 @@ variables:
     default: com.sap.db.jdbc.Driver
 
   sap_hana_jdbc_jar:
-    description: Ruta DBFS o Volume del JAR JDBC SAP HANA ngdbc.jar instalado en Databricks.
-    default: dbfs:/FileStore/jars/sap/ngdbc-2.28.7.jar
+    description: Ruta DBFS o Volume opcional del JAR JDBC SAP HANA ngdbc.jar. Vacio si se usa libreria Maven en el cluster/job.
+    default: ""
+
+  sap_hana_jdbc_maven:
+    description: Coordenada Maven del driver JDBC SAP HANA para jobs Databricks.
+    default: com.sap.cloud.db.jdbc:ngdbc:2.28.7
 
   sap_hana_propietario_fuente:
     description: Valor de PropietarioFuente para SAP HANA en GetControlCargas.
@@ -331,7 +335,8 @@ targets:
       sap_hana_username_secret: sc-saphana-username
       sap_hana_password_secret: sc-saphana-password
       sap_hana_driver: com.sap.db.jdbc.Driver
-      sap_hana_jdbc_jar: dbfs:/FileStore/jars/sap/ngdbc-2.28.7.jar
+      sap_hana_jdbc_jar: ""
+      sap_hana_jdbc_maven: com.sap.cloud.db.jdbc:ngdbc:2.28.7
       sap_hana_propietario_fuente: VistasSapHana
       sharepoint_base_url: https://pronaca365.sharepoint.com/
       sharepoint_auth_mode: sharepoint_client_credentials
@@ -403,7 +408,8 @@ targets:
       sap_hana_username_secret: sc-saphana-username
       sap_hana_password_secret: sc-saphana-password
       sap_hana_driver: com.sap.db.jdbc.Driver
-      sap_hana_jdbc_jar: dbfs:/FileStore/jars/sap/ngdbc-2.28.7.jar
+      sap_hana_jdbc_jar: ""
+      sap_hana_jdbc_maven: com.sap.cloud.db.jdbc:ngdbc:2.28.7
       sap_hana_propietario_fuente: VistasSapHana
       sharepoint_base_url: https://pronaca365.sharepoint.com/
       sharepoint_auth_mode: sharepoint_client_credentials
@@ -475,7 +481,8 @@ targets:
       sap_hana_username_secret: sc-saphana-username
       sap_hana_password_secret: sc-saphana-password
       sap_hana_driver: com.sap.db.jdbc.Driver
-      sap_hana_jdbc_jar: dbfs:/FileStore/jars/sap/ngdbc-2.28.7.jar
+      sap_hana_jdbc_jar: ""
+      sap_hana_jdbc_maven: com.sap.cloud.db.jdbc:ngdbc:2.28.7
       sap_hana_propietario_fuente: VistasSapHana
       sharepoint_base_url: https://pronaca365.sharepoint.com/
       sharepoint_auth_mode: sharepoint_client_credentials
