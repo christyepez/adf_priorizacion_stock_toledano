@@ -45,7 +45,18 @@ Si una key existe en el inventario del scope pero el notebook no puede leerla, v
 
 Las notificaciones estan desactivadas por defecto con `notification_enabled=false`, porque no existe una key de endpoint Logic App en la lista de secretos disponible. Para activarlas se debe crear la key del endpoint, asignarla a `notification_endpoint_secret` y cambiar `notification_enabled=true`.
 
-## 3.1 SharePoint con conexion Databricks
+## 3.1 SharePoint directo
+
+El modo operativo por defecto para este modelo es SharePoint directo:
+
+```yaml
+sharepoint_auth_mode: sharepoint_client_credentials
+sharepoint_base_url: https://pronaca365.sharepoint.com/
+```
+
+En este modo el notebook obtiene token para el recurso SharePoint y descarga con REST API usando la ruta de ControlCargas: `RutaArchivoFuente` + `NombreArchivoFuente`. No usa Microsoft Graph.
+
+## 3.2 SharePoint con conexion Databricks
 
 Si el workspace ya tiene SharePoint expuesto como ruta accesible por Databricks, usar:
 
@@ -156,7 +167,7 @@ El modo configurado en jobs es `truncate_insert`.
 |---|---|
 | Falla control de cargas | Validar Secret Scope SQL control y salida de `conf.GetControlCargas` |
 | Falla SAP HANA | Revisar driver, secretos SAP y query generada por objeto |
-| Falla SharePoint | Revisar secretos OAuth/token, permisos Graph y ruta de archivo |
+| Falla SharePoint | Revisar secretos OAuth/token, permisos SharePoint directos y ruta devuelta por ControlCargas |
 | Falla Bronze to Silver | Revisar columnas obligatorias y cambios de schema |
 | Falla modelo | Revisar disponibilidad de tablas Silver y columnas del modelo |
 | Falla calidad | Consultar `quality_results` por `execution_id` |

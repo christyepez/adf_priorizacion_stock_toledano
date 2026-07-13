@@ -218,12 +218,12 @@ variables:
     default: VistasSapHana
 
   sharepoint_base_url:
-    description: URL base publica de SharePoint o Graph, sin firmas ni tokens.
+    description: URL base publica de SharePoint directo, sin firmas ni tokens.
     default: https://pronaca365.sharepoint.com/
 
   sharepoint_auth_mode:
-    description: Modo de autenticacion SharePoint. Valores soportados: graph_client_credentials, sharepoint_client_credentials, databricks_path.
-    default: graph_client_credentials
+    description: Modo de autenticacion SharePoint. Valores operativos: sharepoint_client_credentials o databricks_path. No usar Graph para este modelo.
+    default: sharepoint_client_credentials
 
   sharepoint_connection_path:
     description: Ruta Databricks ya autenticada para SharePoint cuando sharepoint_auth_mode=databricks_path. Ejemplos: /Volumes/catalog/schema/volume o dbfs:/mnt/sharepoint.
@@ -246,11 +246,11 @@ variables:
     default: sc-sharepoint-tenant-id
 
   sharepoint_site_id_secret:
-    description: Nombre opcional del secreto del site id para Graph SharePoint. Vacio porque no existe en el scope informado.
+    description: Reservado para integraciones futuras. No usado en modo SharePoint directo.
     default: ""
 
   sharepoint_drive_id_secret:
-    description: Nombre opcional del secreto del drive id para Graph SharePoint. Vacio porque no existe en el scope informado.
+    description: Reservado para integraciones futuras. No usado en modo SharePoint directo.
     default: ""
 
   sharepoint_propietario_fuente:
@@ -334,7 +334,7 @@ targets:
       sap_hana_jdbc_jar: dbfs:/FileStore/jars/sap/ngdbc.jar
       sap_hana_propietario_fuente: VistasSapHana
       sharepoint_base_url: https://pronaca365.sharepoint.com/
-      sharepoint_auth_mode: graph_client_credentials
+      sharepoint_auth_mode: sharepoint_client_credentials
       sharepoint_connection_path: ""
       sharepoint_token_secret: ""
       sharepoint_client_id_secret: sc-sharepoint-client-id
@@ -406,7 +406,7 @@ targets:
       sap_hana_jdbc_jar: dbfs:/FileStore/jars/sap/ngdbc.jar
       sap_hana_propietario_fuente: VistasSapHana
       sharepoint_base_url: https://pronaca365.sharepoint.com/
-      sharepoint_auth_mode: graph_client_credentials
+      sharepoint_auth_mode: sharepoint_client_credentials
       sharepoint_connection_path: ""
       sharepoint_token_secret: ""
       sharepoint_client_id_secret: sc-sharepoint-client-id
@@ -478,7 +478,7 @@ targets:
       sap_hana_jdbc_jar: dbfs:/FileStore/jars/sap/ngdbc.jar
       sap_hana_propietario_fuente: VistasSapHana
       sharepoint_base_url: https://pronaca365.sharepoint.com/
-      sharepoint_auth_mode: graph_client_credentials
+      sharepoint_auth_mode: sharepoint_client_credentials
       sharepoint_connection_path: ""
       sharepoint_token_secret: ""
       sharepoint_client_id_secret: sc-sharepoint-client-id

@@ -72,7 +72,7 @@ define_text_widget(dbutils, "sql_control_password_secret", "")
 define_text_widget(dbutils, "sql_control_encrypt", "true")
 define_text_widget(dbutils, "sql_control_trust_server_certificate", "false")
 define_text_widget(dbutils, "sharepoint_base_url", "")
-define_text_widget(dbutils, "sharepoint_auth_mode", "graph_client_credentials")
+define_text_widget(dbutils, "sharepoint_auth_mode", "sharepoint_client_credentials")
 define_text_widget(dbutils, "sharepoint_connection_path", "")
 define_text_widget(dbutils, "sharepoint_token_secret", "")
 define_text_widget(dbutils, "sharepoint_client_id_secret", "")
@@ -142,7 +142,9 @@ sql_control_trust_server_certificate = (
     dbutils.widgets.get("sql_control_trust_server_certificate").strip() or "false"
 )
 sharepoint_base_url = dbutils.widgets.get("sharepoint_base_url").strip()
-sharepoint_auth_mode = dbutils.widgets.get("sharepoint_auth_mode").strip() or "graph_client_credentials"
+sharepoint_auth_mode = dbutils.widgets.get("sharepoint_auth_mode").strip() or "sharepoint_client_credentials"
+if sharepoint_auth_mode.lower() in {"graph", "graph_client_credentials"}:
+    sharepoint_auth_mode = "sharepoint_client_credentials"
 sharepoint_connection_path = dbutils.widgets.get("sharepoint_connection_path").strip()
 sharepoint_propietario_fuente = (
     dbutils.widgets.get("sharepoint_propietario_fuente").strip() or "DatosPortalDeInformacion"

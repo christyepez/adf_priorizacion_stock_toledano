@@ -78,7 +78,7 @@ def test_build_databricks_source_path_keeps_absolute_control_path():
 def test_databricks_path_auth_mode_is_supported():
     assert is_databricks_file_path_mode("databricks_path")
     assert is_databricks_file_path_mode("databricks_volume")
-    assert not is_databricks_file_path_mode("graph_client_credentials")
+    assert not is_databricks_file_path_mode("sharepoint_client_credentials")
 
 
 def test_absolute_databricks_path_detection():
@@ -98,6 +98,38 @@ def test_oauth_scope_uses_graph_resource_for_graph_auth_mode():
     scope = oauth_scope_for_sharepoint("https://pronaca365.sharepoint.com/", "graph_client_credentials")
 
     assert scope == "https://graph.microsoft.com/.default"
+
+
+def test_download_sharepoint_content_uses_direct_sharepoint_rest():
+    class Response:
+        content = b"file-content"
+
+        def raise_for_status(self):
+            return None
+
+    calls = []
+
+    def fake_get(url, **kwargs):
+        calls.append(url)
+        return Response()
+
+    record = {
+        "ruta_archivo_fuente": "Toledano/asignacion_stock",
+        "nombre_archivo_fuente": "Grupos Priorización.xlsx",
+    }
+
+    content = download_sharepoint_content(
+        base_url="https://pronaca365.sharepoint.com/",
+        record=record,
+        headers={"Authorization": "Bearer token"},
+        http_get=fake_get,
+        auth_mode="sharepoint_client_credentials",
+    )
+
+    assert content == b"file-content"
+    assert calls == [
+        "https://pronaca365.sharepoint.com/_api/web/GetFileByServerRelativeUrl('/Toledano/asignacion_stock/Grupos%20Priorizaci%C3%B3n.xlsx')/$value"
+    ]
 
 
 def test_graph_site_file_candidates_from_control_path():

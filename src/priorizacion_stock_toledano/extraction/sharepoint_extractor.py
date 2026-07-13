@@ -232,7 +232,7 @@ def download_sharepoint_content(
     record: Mapping[str, Any],
     headers: Mapping[str, str],
     http_get: Callable[..., Any],
-    auth_mode: str = "graph_client_credentials",
+    auth_mode: str = "sharepoint_client_credentials",
     timeout: int = 300,
 ) -> bytes:
     mode = (auth_mode or "").strip().lower()
