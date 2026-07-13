@@ -250,11 +250,11 @@ variables:
     default: sc-sharepoint-tenant-id
 
   sharepoint_site_id_secret:
-    description: Reservado para integraciones futuras. No usado en modo SharePoint directo.
+    description: Reservado para optimizaciones futuras con Microsoft Graph. Actualmente Graph resuelve el sitio desde sharepoint_base_url y ControlCargas.
     default: ""
 
   sharepoint_drive_id_secret:
-    description: Reservado para integraciones futuras. No usado en modo SharePoint directo.
+    description: Reservado para optimizaciones futuras con Microsoft Graph. Actualmente Graph resuelve la biblioteca desde RutaArchivoFuente.
     default: ""
 
   sharepoint_propietario_fuente:
