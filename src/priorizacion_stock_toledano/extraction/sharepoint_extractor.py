@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Any, Callable, Iterable, Mapping
 from urllib.parse import parse_qsl, quote, urljoin, urlparse
 
@@ -148,7 +150,18 @@ def read_sharepoint_secret_values(dbutils: Any, secret_scope: str, secret_names:
     return values
 
 
-def write_bytes_to_path(spark: Any, path: str, content: bytes) -> None:
+def write_bytes_to_path(spark: Any, path: str, content: bytes, dbutils: Any | None = None) -> None:
+    if dbutils is not None:
+        suffix = Path(path).suffix
+        with NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
+            tmp_file.write(content)
+            tmp_path = Path(tmp_file.name)
+        try:
+            dbutils.fs.cp(tmp_path.as_uri(), path, True)
+        finally:
+            tmp_path.unlink(missing_ok=True)
+        return
+
     hadoop_conf = spark._jsc.hadoopConfiguration()
     j_path = spark._jvm.org.apache.hadoop.fs.Path(path)
     fs = j_path.getFileSystem(hadoop_conf)

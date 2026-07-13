@@ -60,7 +60,9 @@ define_text_widget(dbutils, "secret_scope", "")
 define_text_widget(dbutils, "storage_account_name", "")
 define_text_widget(dbutils, "sql_control_server", "")
 define_text_widget(dbutils, "sql_control_database", "")
-define_text_widget(dbutils, "sql_control_read_mode", "jdbc_sp")
+define_text_widget(dbutils, "sql_control_schema", "conf")
+define_text_widget(dbutils, "sql_control_table", "ControlCargas")
+define_text_widget(dbutils, "sql_control_read_mode", "jdbc_table")
 define_text_widget(dbutils, "sql_control_spark_sql", "")
 define_text_widget(dbutils, "sql_control_spark_relation", "")
 define_text_widget(dbutils, "sql_control_server_secret", "")
@@ -87,6 +89,7 @@ import requests
 from priorizacion_stock_toledano.control.get_control_cargas import (
     SqlSecretNames,
     build_get_control_cargas_query,
+    build_get_control_cargas_table_query,
     jdbc_url,
     normalize_spark_dataframe,
     read_get_control_cargas_spark_sql,
@@ -123,6 +126,8 @@ secret_scope = dbutils.widgets.get("secret_scope").strip()
 storage_account_name = dbutils.widgets.get("storage_account_name").strip()
 sql_control_server = dbutils.widgets.get("sql_control_server").strip()
 sql_control_database = dbutils.widgets.get("sql_control_database").strip()
+sql_control_schema = dbutils.widgets.get("sql_control_schema").strip()
+sql_control_table = dbutils.widgets.get("sql_control_table").strip()
 sql_control_read_mode = validate_control_read_mode(dbutils.widgets.get("sql_control_read_mode"))
 sql_control_spark_sql = dbutils.widgets.get("sql_control_spark_sql").strip()
 sql_control_spark_relation = dbutils.widgets.get("sql_control_spark_relation").strip()
@@ -154,13 +159,6 @@ if not sharepoint_base_url:
         "o configura una URL base publica sin firmas ni tokens."
     )
 
-control_query = build_get_control_cargas_query(
-    anio_mes_dia_inicial=anio_mes_dia_inicial,
-    anio_mes_dia_final=anio_mes_dia_final,
-    proceso=process_name,
-    sistema_fuente=sistema_fuente,
-)
-
 if sql_control_read_mode == "spark_sql":
     control_query = resolve_get_control_cargas_spark_sql(
         spark_sql=sql_control_spark_sql,
@@ -172,6 +170,22 @@ if sql_control_read_mode == "spark_sql":
     )
     df_control_raw = read_get_control_cargas_spark_sql(spark, control_query)
 else:
+    if sql_control_read_mode == "jdbc_table":
+        control_query = build_get_control_cargas_table_query(
+            schema=sql_control_schema,
+            table=sql_control_table,
+            anio_mes_dia_inicial=anio_mes_dia_inicial,
+            anio_mes_dia_final=anio_mes_dia_final,
+            proceso=process_name,
+            sistema_fuente=sistema_fuente,
+        )
+    else:
+        control_query = build_get_control_cargas_query(
+            anio_mes_dia_inicial=anio_mes_dia_inicial,
+            anio_mes_dia_final=anio_mes_dia_final,
+            proceso=process_name,
+            sistema_fuente=sistema_fuente,
+        )
     control_secrets = read_sql_secret_values(
         dbutils,
         secret_scope,
@@ -261,7 +275,7 @@ for record in control_rows:
         content = response.content
         file_type = infer_file_type(record)
         rows_read = count_rows_if_applicable(content, file_type)
-        write_bytes_to_path(spark, archivo_destino, content)
+        write_bytes_to_path(spark, archivo_destino, content, dbutils=dbutils)
         metrics.append(
             metric_record(
                 archivo_origen=archivo_origen,

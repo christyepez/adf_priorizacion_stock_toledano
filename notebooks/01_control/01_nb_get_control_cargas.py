@@ -58,7 +58,9 @@ define_text_widget(dbutils, "propietario_fuente", "")
 define_text_widget(dbutils, "secret_scope", "")
 define_text_widget(dbutils, "sql_control_server", "")
 define_text_widget(dbutils, "sql_control_database", "")
-define_text_widget(dbutils, "sql_control_read_mode", "jdbc_sp")
+define_text_widget(dbutils, "sql_control_schema", "conf")
+define_text_widget(dbutils, "sql_control_table", "ControlCargas")
+define_text_widget(dbutils, "sql_control_read_mode", "jdbc_table")
 define_text_widget(dbutils, "sql_control_spark_sql", "")
 define_text_widget(dbutils, "sql_control_spark_relation", "")
 define_text_widget(dbutils, "sql_control_server_secret", "")
@@ -74,6 +76,7 @@ from priorizacion_stock_toledano.control.get_control_cargas import (
     CONTROL_VIEW_NAME,
     SqlSecretNames,
     build_get_control_cargas_query,
+    build_get_control_cargas_table_query,
     jdbc_url,
     normalize_spark_dataframe,
     read_get_control_cargas_spark_sql,
@@ -94,6 +97,8 @@ propietario_fuente = dbutils.widgets.get("propietario_fuente").strip()
 secret_scope = dbutils.widgets.get("secret_scope").strip()
 sql_control_server = dbutils.widgets.get("sql_control_server").strip()
 sql_control_database = dbutils.widgets.get("sql_control_database").strip()
+sql_control_schema = dbutils.widgets.get("sql_control_schema").strip()
+sql_control_table = dbutils.widgets.get("sql_control_table").strip()
 sql_control_read_mode = validate_control_read_mode(dbutils.widgets.get("sql_control_read_mode"))
 sql_control_spark_sql = dbutils.widgets.get("sql_control_spark_sql").strip()
 sql_control_spark_relation = dbutils.widgets.get("sql_control_spark_relation").strip()
@@ -103,13 +108,6 @@ sql_control_trust_server_certificate = (
 )
 audit_delta_enabled = dbutils.widgets.get("audit_delta_enabled").strip().lower() == "true"
 audit_delta_table = dbutils.widgets.get("audit_delta_table").strip()
-
-query = build_get_control_cargas_query(
-    anio_mes_dia_inicial=anio_mes_dia_inicial,
-    anio_mes_dia_final=anio_mes_dia_final,
-    proceso=proceso,
-    sistema_fuente=sistema_fuente,
-)
 
 if sql_control_read_mode == "spark_sql":
     query = resolve_get_control_cargas_spark_sql(
@@ -122,6 +120,22 @@ if sql_control_read_mode == "spark_sql":
     )
     df_raw = read_get_control_cargas_spark_sql(spark, query)
 else:
+    if sql_control_read_mode == "jdbc_table":
+        query = build_get_control_cargas_table_query(
+            schema=sql_control_schema,
+            table=sql_control_table,
+            anio_mes_dia_inicial=anio_mes_dia_inicial,
+            anio_mes_dia_final=anio_mes_dia_final,
+            proceso=proceso,
+            sistema_fuente=sistema_fuente,
+        )
+    else:
+        query = build_get_control_cargas_query(
+            anio_mes_dia_inicial=anio_mes_dia_inicial,
+            anio_mes_dia_final=anio_mes_dia_final,
+            proceso=proceso,
+            sistema_fuente=sistema_fuente,
+        )
     secret_values = read_sql_secret_values(
         dbutils,
         secret_scope,

@@ -8,7 +8,7 @@ CONTROL_PROCEDURE = "conf.GetControlCargas"
 CONTROL_VIEW_NAME = "vw_control_cargas_priorizacion_stock"
 VALID_SISTEMAS_FUENTE = {"SapHana", "sharepoint"}
 VALID_PROPIETARIOS = {"VistasSapHana", "DatosPortalDeInformacion"}
-VALID_CONTROL_READ_MODES = {"jdbc_sp", "spark_sql"}
+VALID_CONTROL_READ_MODES = {"jdbc_table", "jdbc_sp", "spark_sql"}
 
 STANDARD_COLUMNS = [
     "proceso",
@@ -108,8 +108,42 @@ def build_get_control_cargas_query(
     )
 
 
+def build_get_control_cargas_table_query(
+    *,
+    schema: str,
+    table: str,
+    anio_mes_dia_inicial: str,
+    anio_mes_dia_final: str,
+    proceso: str,
+    sistema_fuente: str,
+) -> str:
+    clean_proceso, clean_sistema = validate_inputs(proceso, sistema_fuente)
+    inicial = _to_int(anio_mes_dia_inicial)
+    final = _to_int(anio_mes_dia_final)
+    safe_proceso = clean_proceso.replace("'", "''")
+    safe_sistema = clean_sistema.replace("'", "''")
+    clean_schema = (schema or "").strip()
+    clean_table = (table or "").strip()
+    if not clean_schema or not clean_table:
+        raise ValueError("sql_control_schema y sql_control_table son obligatorios para sql_control_read_mode=jdbc_table")
+    if any(token in clean_schema + clean_table for token in [";", "--", "/*", "\x00"]):
+        raise ValueError("sql_control_schema/sql_control_table contienen tokens no permitidos")
+    date_filter = ""
+    if inicial != 0:
+        date_filter += f"\n  AND (AñoMesDiaInicial IS NULL OR AñoMesDiaInicial >= {inicial})"
+    if final != 0:
+        date_filter += f"\n  AND (AñoMesDiaFinal IS NULL OR AñoMesDiaFinal <= {final})"
+    return (
+        "SELECT *\n"
+        f"FROM [{clean_schema}].[{clean_table}]\n"
+        f"WHERE Proceso = N'{safe_proceso}'\n"
+        f"  AND SistemaFuente = N'{safe_sistema}'"
+        f"{date_filter}"
+    )
+
+
 def validate_control_read_mode(read_mode: str) -> str:
-    value = (read_mode or "jdbc_sp").strip().lower()
+    value = (read_mode or "jdbc_table").strip().lower()
     if value not in VALID_CONTROL_READ_MODES:
         valid = ", ".join(sorted(VALID_CONTROL_READ_MODES))
         raise ValueError(f"sql_control_read_mode invalido: {read_mode!r}. Valores permitidos: {valid}")

@@ -204,10 +204,18 @@ Usuario y password deben permanecer siempre en Secret Scope.
 El bundle soporta dos modos:
 
 ```yaml
+sql_control_read_mode: jdbc_table
+```
+
+Usa SQL Server externo por JDBC con un `SELECT` sobre `[conf].[ControlCargas]`. Es el modo recomendado para Databricks Serverless o Spark Connect, porque no requiere acceso al JVM desde Python.
+
+Si un notebook fue ejecutado manualmente antes del cambio, validar que el widget `sql_control_read_mode` no haya quedado con el valor anterior `jdbc_sp`. Para serverless debe quedar en `jdbc_table` o `spark_sql`.
+
+```yaml
 sql_control_read_mode: jdbc_sp
 ```
 
-Usa SQL Server externo y ejecuta `conf.GetControlCargas` por JDBC directo. Es el modo compatible con ADF y con el procedimiento original.
+Ejecuta `conf.GetControlCargas` como stored procedure SQL Server por JDBC directo. Este modo queda como compatibilidad legacy para clusters clasicos con acceso al JVM desde Python.
 
 ```yaml
 sql_control_read_mode: spark_sql
@@ -229,4 +237,4 @@ sql_control_spark_sql: >
     AND SistemaFuente = 'SapHana'
 ```
 
-No usar `spark.sql("EXEC conf.GetControlCargas ...")` salvo que ese `EXEC` exista realmente en el motor SQL de Databricks. Para SQL Server remoto se debe mantener `jdbc_sp`.
+No usar `spark.sql("EXEC conf.GetControlCargas ...")` salvo que ese `EXEC` exista realmente en el motor SQL de Databricks. Para SQL Server remoto en serverless usar `jdbc_table`; para clusters clasicos puede usarse `jdbc_sp`.

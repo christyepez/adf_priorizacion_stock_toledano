@@ -6,6 +6,7 @@ from priorizacion_stock_toledano.control.get_control_cargas import (
     SqlSecretNames,
     build_get_control_cargas_query,
     build_get_control_cargas_spark_sql,
+    build_get_control_cargas_table_query,
     filter_by_owner,
     is_exec_statement,
     jdbc_url,
@@ -59,6 +60,8 @@ def test_get_control_cargas_query_is_detected_as_exec_statement():
 
 
 def test_validate_control_read_mode_accepts_expected_modes():
+    assert validate_control_read_mode("") == "jdbc_table"
+    assert validate_control_read_mode("jdbc_table") == "jdbc_table"
     assert validate_control_read_mode("jdbc_sp") == "jdbc_sp"
     assert validate_control_read_mode("SPARK_SQL") == "spark_sql"
 
@@ -75,6 +78,22 @@ def test_build_get_control_cargas_spark_sql_builds_select_over_relation():
     assert "SELECT *" in query
     assert "FROM `conf`.`vw_control_cargas_priorizacion_stock`" in query
     assert "WHERE" not in query
+
+
+def test_build_get_control_cargas_table_query_builds_select_for_sql_server_table():
+    query = build_get_control_cargas_table_query(
+        schema="conf",
+        table="ControlCargas",
+        anio_mes_dia_inicial="0",
+        anio_mes_dia_final="0",
+        proceso="Modelo_Priorizacion_Stock",
+        sistema_fuente="SapHana",
+    )
+
+    assert "SELECT *" in query
+    assert "FROM [conf].[ControlCargas]" in query
+    assert "Proceso = N'Modelo_Priorizacion_Stock'" in query
+    assert "SistemaFuente = N'SapHana'" in query
 
 
 def test_normalize_control_records_preserves_arm_compatibility():
