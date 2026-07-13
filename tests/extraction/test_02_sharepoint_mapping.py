@@ -4,6 +4,8 @@ from priorizacion_stock_toledano.extraction.sharepoint_extractor import (
     SHAREPOINT_METRICS_COLUMNS,
     build_bronze_path,
     build_databricks_source_path,
+    build_graph_file_path,
+    build_server_relative_path,
     build_sharepoint_download_url,
     build_source_file_name,
     collect_paginated_graph_items,
@@ -39,18 +41,67 @@ def test_build_sharepoint_download_url_encodes_spaces():
     assert url == "https://graph.microsoft.com/v1.0/sites/portal/documentos%20compartidos/grupos%20priorizacion.xlsx"
 
 
-def test_build_sharepoint_download_url_uses_rest_api_for_sharepoint_host():
+def test_build_sharepoint_download_url_rejects_direct_sharepoint_host():
     record = {
         "ruta_archivo_fuente": "Toledano/asignacion_stock",
         "nombre_archivo_fuente": "Grupos Priorización.xlsx",
     }
 
-    url = build_sharepoint_download_url("https://pronaca365.sharepoint.com/", record)
+    with unittest.TestCase().assertRaises(ValueError):
+        build_sharepoint_download_url("https://pronaca365.sharepoint.com/", record)
 
-    assert (
-        url
-        == "https://pronaca365.sharepoint.com/_api/web/GetFileByServerRelativeUrl('/Toledano/asignacion_stock/Grupos%20Priorizaci%C3%B3n.xlsx')/$value"
+
+def test_build_server_relative_path_from_control_folder():
+    path = build_server_relative_path(
+        "Toledano/asignacion_stock",
+        "Grupos Priorización.xlsx",
+        "/sites/DatosPortaldeInformacin",
+        "Documentos compartidos",
     )
+
+    assert path == (
+        "/sites/DatosPortaldeInformacin/Documentos compartidos/"
+        "Toledano/asignacion_stock/Grupos Priorización.xlsx"
+    )
+
+
+def test_build_server_relative_path_keeps_existing_site_and_library():
+    path = build_server_relative_path(
+        "/sites/DatosPortaldeInformacin/Documentos compartidos/Toledano/asignacion_stock",
+        "Grupos Priorización.xlsx",
+        "/sites/DatosPortaldeInformacin",
+        "Documentos compartidos",
+    )
+
+    assert path == (
+        "/sites/DatosPortaldeInformacin/Documentos compartidos/"
+        "Toledano/asignacion_stock/Grupos Priorización.xlsx"
+    )
+
+
+def test_build_server_relative_path_does_not_duplicate_library():
+    path = build_server_relative_path(
+        "Documentos compartidos/Toledano/asignacion_stock",
+        "Grupos Priorización.xlsx",
+        "/sites/DatosPortaldeInformacin",
+        "Documentos compartidos",
+    )
+
+    assert path == (
+        "/sites/DatosPortaldeInformacin/Documentos compartidos/"
+        "Toledano/asignacion_stock/Grupos Priorización.xlsx"
+    )
+
+
+def test_build_graph_file_path_removes_site_and_library():
+    path = build_graph_file_path(
+        "Toledano/asignacion_stock",
+        "Grupos Priorización.xlsx",
+        "/sites/DatosPortaldeInformacin",
+        "Documentos compartidos",
+    )
+
+    assert path == "Toledano/asignacion_stock/Grupos Priorización.xlsx"
 
 
 def test_build_databricks_source_path_uses_connection_base_path():
@@ -88,10 +139,10 @@ def test_absolute_databricks_path_detection():
     assert not is_absolute_databricks_path("Toledano/asignacion_stock/file.xlsx")
 
 
-def test_oauth_scope_uses_sharepoint_resource_for_sharepoint_host():
+def test_oauth_scope_uses_graph_resource_even_for_legacy_sharepoint_mode():
     scope = oauth_scope_for_sharepoint("https://pronaca365.sharepoint.com/", "sharepoint_client_credentials")
 
-    assert scope == "https://pronaca365.sharepoint.com/.default"
+    assert scope == "https://graph.microsoft.com/.default"
 
 
 def test_oauth_scope_uses_graph_resource_for_graph_auth_mode():
@@ -100,36 +151,21 @@ def test_oauth_scope_uses_graph_resource_for_graph_auth_mode():
     assert scope == "https://graph.microsoft.com/.default"
 
 
-def test_download_sharepoint_content_uses_direct_sharepoint_rest():
-    class Response:
-        content = b"file-content"
-
-        def raise_for_status(self):
-            return None
-
-    calls = []
-
-    def fake_get(url, **kwargs):
-        calls.append(url)
-        return Response()
-
+def test_download_sharepoint_content_rejects_non_graph_remote_mode():
     record = {
         "ruta_archivo_fuente": "Toledano/asignacion_stock",
         "nombre_archivo_fuente": "Grupos Priorización.xlsx",
     }
 
-    content = download_sharepoint_content(
-        base_url="https://pronaca365.sharepoint.com/",
-        record=record,
-        headers={"Authorization": "Bearer token"},
-        http_get=fake_get,
-        auth_mode="sharepoint_client_credentials",
-    )
-
-    assert content == b"file-content"
-    assert calls == [
-        "https://pronaca365.sharepoint.com/_api/web/GetFileByServerRelativeUrl('/Toledano/asignacion_stock/Grupos%20Priorizaci%C3%B3n.xlsx')/$value"
-    ]
+    with unittest.TestCase().assertRaises(ValueError):
+        download_sharepoint_content(
+            base_url="https://pronaca365.sharepoint.com/",
+            record=record,
+            headers={"Authorization": "Bearer token"},
+            http_get=lambda *args, **kwargs: None,
+            auth_mode="graph_client_credentials",
+            download_mode="sharepoint_rest",
+        )
 
 
 def test_graph_site_file_candidates_from_control_path():
@@ -139,9 +175,7 @@ def test_graph_site_file_candidates_from_control_path():
     }
 
     assert graph_site_file_candidates("https://pronaca365.sharepoint.com/", record) == [
-        ("/", "Toledano/asignacion_stock/Grupos Priorización.xlsx"),
-        ("/sites/Toledano", "asignacion_stock/Grupos Priorización.xlsx"),
-        ("/Toledano", "asignacion_stock/Grupos Priorización.xlsx"),
+        ("/sites/DatosPortaldeInformacin", "Toledano/asignacion_stock/Grupos Priorización.xlsx"),
     ]
 
 
@@ -152,7 +186,7 @@ def test_graph_drive_file_candidates_from_document_library_path():
     }
 
     assert graph_drive_file_candidates(record) == [
-        ("Toledano", "asignacion_stock/Grupos Priorización.xlsx")
+        ("Documentos compartidos", "Toledano/asignacion_stock/Grupos Priorización.xlsx")
     ]
 
 
@@ -174,7 +208,7 @@ def test_download_sharepoint_content_uses_graph_candidates():
 
     def fake_get(url, **kwargs):
         calls.append(url)
-        if "/sites/pronaca365.sharepoint.com:/" in url:
+        if "/sites/pronaca365.sharepoint.com:/sites/DatosPortaldeInformacin" in url:
             return Response(payload={"id": "site-id"})
         if "/sites/site-id/drive/root:/Toledano/asignacion_stock/Grupos%20Priorizaci%C3%B3n.xlsx:/content" in url:
             return Response(content=b"file-content")
@@ -215,13 +249,13 @@ def test_download_sharepoint_content_falls_back_to_matching_drive():
 
     def fake_get(url, **kwargs):
         calls.append(url)
-        if "/sites/pronaca365.sharepoint.com:/" in url:
+        if "/sites/pronaca365.sharepoint.com:/sites/DatosPortaldeInformacin" in url:
             return Response(payload={"id": "site-id"})
         if "/sites/site-id/drive/root:/Toledano/asignacion_stock/Grupos%20Priorizaci%C3%B3n.xlsx:/content" in url:
             return Response(status_code=404)
         if "/sites/site-id/drives" in url:
-            return Response(payload={"value": [{"id": "drive-id", "name": "Toledano"}]})
-        if "/drives/drive-id/root:/asignacion_stock/Grupos%20Priorizaci%C3%B3n.xlsx:/content" in url:
+            return Response(payload={"value": [{"id": "drive-id", "name": "Documentos compartidos"}]})
+        if "/drives/drive-id/root:/Toledano/asignacion_stock/Grupos%20Priorizaci%C3%B3n.xlsx:/content" in url:
             return Response(content=b"file-content")
         return Response(status_code=404)
 

@@ -116,6 +116,9 @@ resources:
               sql_control_trust_server_certificate: ${var.sql_control_trust_server_certificate}
               sharepoint_base_url: ${var.sharepoint_base_url}
               sharepoint_auth_mode: ${var.sharepoint_auth_mode}
+              sharepoint_download_mode: ${var.sharepoint_download_mode}
+              sharepoint_site_path: ${var.sharepoint_site_path}
+              sharepoint_library_name: ${var.sharepoint_library_name}
               sharepoint_connection_path: ${var.sharepoint_connection_path}
               sharepoint_token_secret: ${var.sharepoint_token_secret}
               sharepoint_client_id_secret: ${var.sharepoint_client_id_secret}

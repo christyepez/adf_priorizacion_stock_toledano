@@ -73,6 +73,9 @@ define_text_widget(dbutils, "sql_control_encrypt", "true")
 define_text_widget(dbutils, "sql_control_trust_server_certificate", "false")
 define_text_widget(dbutils, "sharepoint_base_url", "")
 define_text_widget(dbutils, "sharepoint_auth_mode", "graph_client_credentials")
+define_text_widget(dbutils, "sharepoint_download_mode", "graph")
+define_text_widget(dbutils, "sharepoint_site_path", "/sites/DatosPortaldeInformacin")
+define_text_widget(dbutils, "sharepoint_library_name", "Documentos compartidos")
 define_text_widget(dbutils, "sharepoint_connection_path", "")
 define_text_widget(dbutils, "sharepoint_token_secret", "")
 define_text_widget(dbutils, "sharepoint_client_id_secret", "")
@@ -105,6 +108,8 @@ from priorizacion_stock_toledano.extraction.sharepoint_extractor import (
     assert_https_url,
     build_bronze_path,
     build_databricks_source_path,
+    build_graph_file_path,
+    build_server_relative_path,
     build_source_file_name,
     count_rows_if_applicable,
     download_sharepoint_content,
@@ -143,6 +148,9 @@ sql_control_trust_server_certificate = (
 )
 sharepoint_base_url = dbutils.widgets.get("sharepoint_base_url").strip()
 sharepoint_auth_mode = dbutils.widgets.get("sharepoint_auth_mode").strip() or "graph_client_credentials"
+sharepoint_download_mode = dbutils.widgets.get("sharepoint_download_mode").strip().lower() or "graph"
+sharepoint_site_path = dbutils.widgets.get("sharepoint_site_path").strip() or "/sites/DatosPortaldeInformacin"
+sharepoint_library_name = dbutils.widgets.get("sharepoint_library_name").strip() or "Documentos compartidos"
 sharepoint_connection_path = dbutils.widgets.get("sharepoint_connection_path").strip()
 sharepoint_propietario_fuente = (
     dbutils.widgets.get("sharepoint_propietario_fuente").strip() or "DatosPortalDeInformacion"
@@ -166,6 +174,9 @@ if not sharepoint_base_url and not is_databricks_file_path_mode(sharepoint_auth_
         "sharepoint_base_url es obligatorio. Ejecuta el notebook desde el Databricks Job/Bundle "
         "o configura una URL base publica sin firmas ni tokens."
     )
+
+if not is_databricks_file_path_mode(sharepoint_auth_mode) and sharepoint_download_mode != "graph":
+    raise ValueError("sharepoint_download_mode debe ser graph. La lectura directa SharePoint REST no esta habilitada.")
 
 if sql_control_read_mode == "spark_sql":
     control_query = resolve_get_control_cargas_spark_sql(
@@ -299,12 +310,35 @@ for record in control_rows:
             bytes_read = 0
             rows_read = None
         else:
+            server_relative_path = build_server_relative_path(
+                record["ruta_archivo_fuente"],
+                record["nombre_archivo_fuente"],
+                sharepoint_site_path,
+                sharepoint_library_name,
+            )
+            graph_file_path = build_graph_file_path(
+                record["ruta_archivo_fuente"],
+                record["nombre_archivo_fuente"],
+                sharepoint_site_path,
+                sharepoint_library_name,
+            )
+            print(
+                {
+                    "archivo_origen": archivo_origen,
+                    "server_relative_path": server_relative_path,
+                    "graph_file_path": graph_file_path,
+                    "archivo_destino": archivo_destino,
+                }
+            )
             content = download_sharepoint_content(
                 base_url=base_url,
                 record=record,
                 headers=headers,
                 http_get=requests.get,
                 auth_mode=sharepoint_auth_mode,
+                download_mode=sharepoint_download_mode,
+                site_path=sharepoint_site_path,
+                library_name=sharepoint_library_name,
                 timeout=300,
             )
             bytes_read = len(content)

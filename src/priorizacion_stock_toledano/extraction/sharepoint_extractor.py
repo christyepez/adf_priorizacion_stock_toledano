@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any, Callable, Iterable, Mapping
+import re
 from urllib.parse import parse_qsl, quote, urljoin, urlparse
 
 
@@ -21,6 +22,8 @@ SHAREPOINT_METRICS_COLUMNS = [
     "metric_timestamp_utc",
 ]
 FILE_PATH_AUTH_MODES = {"databricks_path", "databricks_volume", "mounted_path", "external_location"}
+GRAPH_DOWNLOAD_MODES = {"graph", "graph_client_credentials"}
+VALID_SHAREPOINT_DOWNLOAD_MODES = {"graph"}
 
 
 @dataclass(frozen=True)
@@ -44,6 +47,72 @@ def reject_signed_or_secret_url(url: str) -> None:
     query_keys = {key.lower() for key, _ in parse_qsl(parsed.query, keep_blank_values=True)}
     if query_keys.intersection(SENSITIVE_QUERY_KEYS):
         raise ValueError("URL SharePoint no permitida: contiene firma, token o secreto embebido")
+
+
+def clean_path(value: str) -> str:
+    """Normalize slashes and surrounding whitespace without changing unicode text."""
+    clean = str(value or "").strip().replace("\\", "/")
+    clean = re.sub(r"/+", "/", clean)
+    if clean != "/":
+        clean = clean.rstrip("/")
+    return clean
+
+
+def _starts_with_path(value: str, prefix: str) -> bool:
+    clean_value = clean_path(value).strip("/").lower()
+    clean_prefix = clean_path(prefix).strip("/").lower()
+    return clean_value == clean_prefix or clean_value.startswith(clean_prefix + "/")
+
+
+def _remove_path_prefix(value: str, prefix: str) -> str:
+    clean_value = clean_path(value).strip("/")
+    clean_prefix = clean_path(prefix).strip("/")
+    if not clean_prefix:
+        return clean_value
+    if clean_value.lower() == clean_prefix.lower():
+        return ""
+    if clean_value.lower().startswith(clean_prefix.lower() + "/"):
+        return clean_value[len(clean_prefix) + 1 :]
+    return clean_value
+
+
+def build_server_relative_path(
+    ruta_archivo_fuente: str,
+    nombre_archivo_fuente: str,
+    site_path: str,
+    library_name: str,
+) -> str:
+    clean_site_path = clean_path(site_path)
+    clean_library_name = clean_path(library_name).strip("/")
+    clean_source_path = clean_path(ruta_archivo_fuente).strip("/")
+    clean_source_name = clean_path(nombre_archivo_fuente).strip("/")
+
+    if not clean_site_path.startswith("/"):
+        clean_site_path = "/" + clean_site_path.strip("/")
+    if not clean_site_path or clean_site_path == "/":
+        raise ValueError("sharepoint_site_path es obligatorio")
+    if not clean_library_name:
+        raise ValueError("sharepoint_library_name es obligatorio")
+    if not clean_source_name:
+        raise ValueError("NombreArchivoFuente es obligatorio")
+
+    source_base = clean_source_path
+    if source_base.startswith("sites/"):
+        source_base = "/" + source_base
+
+    if source_base.startswith("/sites/"):
+        full_base = source_base
+    elif _starts_with_path(source_base, clean_library_name):
+        full_base = f"{clean_site_path}/{source_base}"
+    else:
+        full_base = f"{clean_site_path}/{clean_library_name}"
+        if source_base:
+            full_base = f"{full_base}/{source_base}"
+
+    full_path = clean_path(f"{full_base}/{clean_source_name}")
+    if not full_path.startswith("/"):
+        full_path = "/" + full_path
+    return full_path
 
 
 def build_bronze_path(
@@ -78,35 +147,10 @@ def is_sharepoint_host(url: str) -> bool:
 
 def oauth_scope_for_sharepoint(base_url: str, auth_mode: str) -> str:
     parsed = urlparse(base_url or "")
-    mode = (auth_mode or "").strip().lower()
     if not parsed.scheme or not parsed.netloc:
         raise ValueError("sharepoint_base_url debe ser una URL absoluta HTTPS")
 
-    if mode in {"graph_client_credentials", "graph"}:
-        return "https://graph.microsoft.com/.default"
-
-    if is_sharepoint_host(base_url):
-        return f"{parsed.scheme}://{parsed.netloc}/.default"
-
-    if mode in {"sharepoint_client_credentials", "sharepoint"}:
-        return f"{parsed.scheme}://{parsed.netloc}/.default"
-
     return "https://graph.microsoft.com/.default"
-
-
-def build_sharepoint_rest_download_url(base_url: str, record: Mapping[str, Any]) -> str:
-    parsed = urlparse(base_url or "")
-    if not parsed.scheme or not parsed.netloc:
-        raise ValueError("base_url SharePoint es obligatorio")
-    source_file = build_source_file_name(record).strip("/")
-    base_path = parsed.path.strip("/")
-    if base_path and not source_file.lower().startswith(base_path.lower() + "/"):
-        source_file = f"{base_path}/{source_file}"
-    server_relative_path = f"/{source_file}"
-    encoded_server_relative_path = quote(server_relative_path, safe="/")
-    url = f"{parsed.scheme}://{parsed.netloc}/_api/web/GetFileByServerRelativeUrl('{encoded_server_relative_path}')/$value"
-    reject_signed_or_secret_url(url)
-    return url
 
 
 def build_sharepoint_download_url(base_url: str, record: Mapping[str, Any]) -> str:
@@ -114,12 +158,34 @@ def build_sharepoint_download_url(base_url: str, record: Mapping[str, Any]) -> s
         raise ValueError("base_url SharePoint/Graph es obligatorio")
     reject_signed_or_secret_url(base_url)
     if is_sharepoint_host(base_url):
-        return build_sharepoint_rest_download_url(base_url, record)
+        raise ValueError("La descarga directa SharePoint REST no esta habilitada; usa Microsoft Graph.")
     source_file = build_source_file_name(record)
     encoded_path = "/".join(quote(part) for part in source_file.split("/"))
     url = urljoin(base_url.rstrip("/") + "/", encoded_path)
     reject_signed_or_secret_url(url)
     return url
+
+
+def build_graph_file_path(
+    ruta_archivo_fuente: str,
+    nombre_archivo_fuente: str,
+    site_path: str,
+    library_name: str,
+) -> str:
+    server_relative_path = build_server_relative_path(
+        ruta_archivo_fuente,
+        nombre_archivo_fuente,
+        site_path,
+        library_name,
+    )
+    clean_site_path = clean_path(site_path).strip("/")
+    clean_library_name = clean_path(library_name).strip("/")
+    graph_path = server_relative_path.strip("/")
+    if clean_site_path and _starts_with_path(graph_path, clean_site_path):
+        graph_path = _remove_path_prefix(graph_path, clean_site_path)
+    if clean_library_name and _starts_with_path(graph_path, clean_library_name):
+        graph_path = _remove_path_prefix(graph_path, clean_library_name)
+    return clean_path(graph_path).strip("/")
 
 
 def is_databricks_file_path_mode(auth_mode: str) -> bool:
@@ -152,40 +218,26 @@ def build_databricks_source_path(base_path: str, record: Mapping[str, Any]) -> s
     return f"{clean_base}/{source_file}"
 
 
-def graph_site_file_candidates(base_url: str, record: Mapping[str, Any]) -> list[tuple[str, str]]:
+def graph_site_file_candidates(
+    base_url: str,
+    record: Mapping[str, Any],
+    site_path: str = "/sites/DatosPortaldeInformacin",
+    library_name: str = "Documentos compartidos",
+) -> list[tuple[str, str]]:
     parsed = urlparse(base_url or "")
     if not parsed.hostname:
         raise ValueError("sharepoint_base_url debe incluir host para usar Graph")
 
-    source_file = build_source_file_name(record).strip("/")
-    source_parts = [part for part in source_file.split("/") if part]
-    base_parts = [part for part in parsed.path.strip("/").split("/") if part]
-    candidates: list[tuple[str, str]] = []
-
-    if source_file:
-        candidates.append(("/", source_file))
-
-    if base_parts:
-        site_path = "/" + "/".join(base_parts)
-        file_path = source_file
-        if source_file.lower().startswith("/".join(base_parts).lower() + "/"):
-            file_path = "/".join(source_parts[len(base_parts) :])
-        candidates.append((site_path, file_path))
-
-    if source_parts:
-        site_name = source_parts[0]
-        file_path = "/".join(source_parts[1:])
-        candidates.append((f"/sites/{site_name}", file_path))
-        candidates.append((f"/{site_name}", file_path))
-
-    unique_candidates: list[tuple[str, str]] = []
-    seen: set[tuple[str, str]] = set()
-    for site_path, file_path in candidates:
-        normalized = (site_path.strip(), file_path.strip("/"))
-        if normalized[0] and normalized[1] and normalized not in seen:
-            unique_candidates.append(normalized)
-            seen.add(normalized)
-    return unique_candidates
+    clean_site_path = clean_path(site_path)
+    if not clean_site_path.startswith("/"):
+        clean_site_path = "/" + clean_site_path.strip("/")
+    file_path = build_graph_file_path(
+        _required(record, "ruta_archivo_fuente"),
+        _required(record, "nombre_archivo_fuente"),
+        clean_site_path,
+        library_name,
+    )
+    return [(clean_site_path, file_path)]
 
 
 def _graph_site_lookup_url(hostname: str, site_path: str) -> str:
@@ -207,14 +259,18 @@ def _graph_drive_file_content_url(drive_id: str, file_path: str) -> str:
     return f"https://graph.microsoft.com/v1.0/drives/{drive_id}/root:/{encoded_file_path}:/content"
 
 
-def graph_drive_file_candidates(record: Mapping[str, Any]) -> list[tuple[str, str]]:
-    source_file = build_source_file_name(record).strip("/")
-    source_parts = [part for part in source_file.split("/") if part]
-    if len(source_parts) < 2:
-        return []
-    drive_name = source_parts[0]
-    file_path = "/".join(source_parts[1:])
-    return [(drive_name, file_path)]
+def graph_drive_file_candidates(
+    record: Mapping[str, Any],
+    site_path: str = "/sites/DatosPortaldeInformacin",
+    library_name: str = "Documentos compartidos",
+) -> list[tuple[str, str]]:
+    file_path = build_graph_file_path(
+        _required(record, "ruta_archivo_fuente"),
+        _required(record, "nombre_archivo_fuente"),
+        site_path,
+        library_name,
+    )
+    return [(clean_path(library_name).strip("/"), file_path)]
 
 
 def _drive_matches_name(drive: Mapping[str, Any], expected_name: str) -> bool:
@@ -233,39 +289,43 @@ def download_sharepoint_content(
     headers: Mapping[str, str],
     http_get: Callable[..., Any],
     auth_mode: str = "graph_client_credentials",
+    download_mode: str = "graph",
+    site_path: str = "/sites/DatosPortaldeInformacin",
+    library_name: str = "Documentos compartidos",
+    access_token: str = "",
     timeout: int = 300,
 ) -> bytes:
-    mode = (auth_mode or "").strip().lower()
-    if mode in {"graph_client_credentials", "graph"}:
+    mode = (download_mode or auth_mode or "graph").strip().lower()
+    if mode in GRAPH_DOWNLOAD_MODES:
         parsed = urlparse(base_url or "")
         hostname = parsed.hostname
         if not hostname:
             raise ValueError("sharepoint_base_url debe incluir host para usar Graph")
         errors: list[str] = []
         resolved_sites: list[tuple[str, str]] = []
-        for site_path, file_path in graph_site_file_candidates(base_url, record):
-            site_url = _graph_site_lookup_url(hostname, site_path)
+        for graph_site_path, file_path in graph_site_file_candidates(base_url, record, site_path, library_name):
+            site_url = _graph_site_lookup_url(hostname, graph_site_path)
             try:
                 site_response = http_get(site_url, headers=headers, timeout=timeout)
                 site_response.raise_for_status()
                 site_id = site_response.json()["id"]
-                resolved_sites.append((site_path, site_id))
+                resolved_sites.append((graph_site_path, site_id))
                 content_url = _graph_file_content_url(site_id, file_path)
                 content_response = http_get(content_url, headers=headers, timeout=timeout)
                 content_response.raise_for_status()
                 return content_response.content
             except Exception as exc:
-                errors.append(f"{site_path}/{file_path}: {exc}")
+                errors.append(f"{graph_site_path}/{file_path}: {exc}")
 
-        for site_path, site_id in resolved_sites:
-            for drive_name, file_path in graph_drive_file_candidates(record):
+        for graph_site_path, site_id in resolved_sites:
+            for drive_name, file_path in graph_drive_file_candidates(record, site_path, library_name):
                 try:
                     drives_response = http_get(_graph_drives_url(site_id), headers=headers, timeout=timeout)
                     drives_response.raise_for_status()
                     drives = drives_response.json().get("value", [])
                     matching_drives = [drive for drive in drives if _drive_matches_name(drive, drive_name)]
                     if not matching_drives:
-                        raise RuntimeError(f"No existe drive/biblioteca {drive_name!r} en el sitio {site_path}")
+                        raise RuntimeError(f"No existe drive/biblioteca {drive_name!r} en el sitio {graph_site_path}")
                     for drive in matching_drives:
                         drive_id = drive["id"]
                         content_response = http_get(
@@ -276,7 +336,7 @@ def download_sharepoint_content(
                         content_response.raise_for_status()
                         return content_response.content
                 except Exception as exc:
-                    errors.append(f"{site_path} drive {drive_name}/{file_path}: {exc}")
+                    errors.append(f"{graph_site_path} drive {drive_name}/{file_path}: {exc}")
 
         raise RuntimeError(
             "No se pudo descargar el archivo desde SharePoint usando Microsoft Graph. "
@@ -284,10 +344,8 @@ def download_sharepoint_content(
             + " | ".join(errors)
         )
 
-    download_url = build_sharepoint_download_url(base_url, record)
-    response = http_get(download_url, headers=headers, timeout=timeout)
-    response.raise_for_status()
-    return response.content
+    valid = ", ".join(sorted(VALID_SHAREPOINT_DOWNLOAD_MODES))
+    raise ValueError(f"sharepoint_download_mode invalido: {download_mode!r}. Valores permitidos: {valid}")
 
 
 def infer_file_type(record: Mapping[str, Any]) -> str:

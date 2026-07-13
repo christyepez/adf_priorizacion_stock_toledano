@@ -88,16 +88,34 @@ El modo operativo por defecto para este modelo es Microsoft Graph:
 
 ```yaml
 sharepoint_auth_mode: graph_client_credentials
+sharepoint_download_mode: graph
 sharepoint_base_url: https://pronaca365.sharepoint.com/
+sharepoint_site_path: /sites/DatosPortaldeInformacin
+sharepoint_library_name: Documentos compartidos
 ```
 
-En este modo el notebook obtiene token para `https://graph.microsoft.com/.default`, resuelve el sitio/drive y descarga usando la ruta de ControlCargas: `RutaArchivoFuente` + `NombreArchivoFuente`.
+En este modo el notebook obtiene token para `https://graph.microsoft.com/.default`, resuelve el sitio `/sites/DatosPortaldeInformacin`, ubica la biblioteca `Documentos compartidos` y descarga usando la ruta de ControlCargas: `RutaArchivoFuente` + `NombreArchivoFuente`.
 
-Si se requiere usar SharePoint REST directo, configurar:
+Para el caso actual, `Toledano` no se interpreta como sitio ni como drive. `Toledano` es una carpeta dentro de la biblioteca `Documentos compartidos`. Si ControlCargas devuelve:
 
-```yaml
-sharepoint_auth_mode: sharepoint_client_credentials
+```text
+RutaArchivoFuente = Toledano/asignacion_stock
+NombreArchivoFuente = Grupos Priorización.xlsx
 ```
+
+La ruta de archivo enviada a Graph dentro de la biblioteca es:
+
+```text
+Toledano/asignacion_stock/Grupos Priorización.xlsx
+```
+
+La ruta equivalente server-relative de SharePoint, usada solo para trazabilidad y diagnostico, es:
+
+```text
+/sites/DatosPortaldeInformacin/Documentos compartidos/Toledano/asignacion_stock/Grupos Priorización.xlsx
+```
+
+El destino en Bronze se arma con `RutaArchivoDestino + NombreArchivoDestino + ExtencionArchivoDestino`.
 
 ## 3.3 SharePoint con conexion Databricks
 
